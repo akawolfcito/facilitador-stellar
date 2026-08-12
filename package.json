@@ -1,0 +1,14 @@
+{
+  "name": "stellar-bazaar",
+  "private": true,
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "pnpm@10.5.2",
+  "scripts": {
+    "test": "pnpm -r test",
+    "eval:retrieval": "pnpm --filter @stellar-bazaar/retrieval-eval eval",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
