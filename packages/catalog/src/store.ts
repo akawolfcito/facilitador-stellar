@@ -19,6 +19,7 @@ import type {
   CatalogStore,
   DiscoveryPage,
   DiscoveryQuery,
+  EmbeddingRecord,
 } from "./types.js";
 
 export const METADATA_VERSION = 1;
@@ -57,6 +58,27 @@ const MIGRATIONS: string[] = [
      last_seen_at       TEXT NOT NULL,
      last_settlement_tx TEXT NOT NULL,
      metadata_version   INTEGER NOT NULL
+   )`,
+  /**
+   * Derived state, never source of truth.
+   *
+   * A row is valid only while `document_hash`, `model` and `doc_version` all
+   * match what the current listing and code would produce; any mismatch makes
+   * it stale and it is rebuilt from `listings`. Deleting this whole table must
+   * cost nothing but CPU — that property is what makes the catalog the single
+   * source of truth, and it is tested.
+   *
+   * `ON DELETE CASCADE` keeps vectors from outliving their listing.
+   */
+  `CREATE TABLE IF NOT EXISTS embeddings (
+     canonical_key  TEXT PRIMARY KEY NOT NULL
+                    REFERENCES listings(canonical_key) ON DELETE CASCADE,
+     document_hash  TEXT NOT NULL,
+     model          TEXT NOT NULL,
+     doc_version    INTEGER NOT NULL,
+     dims           INTEGER NOT NULL,
+     vector         BLOB NOT NULL,
+     built_at       TEXT NOT NULL
    )`,
   `CREATE INDEX IF NOT EXISTS idx_listings_type    ON listings(type)`,
   `CREATE INDEX IF NOT EXISTS idx_listings_pay_to  ON listings(pay_to)`,
@@ -304,6 +326,87 @@ export class SqliteCatalogStore implements CatalogStore {
       .all({ ...params, limit, offset }) as Row[];
 
     return { resources: rows.map(toListing), pagination: { limit, offset, total } };
+  }
+
+  /** Every listing, for a full index rebuild. */
+  all(): CatalogListing[] {
+    const rows = this.db
+      .prepare("SELECT * FROM listings ORDER BY first_seen_at ASC, canonical_key ASC")
+      .all() as Row[];
+    return rows.map(toListing);
+  }
+
+  /**
+   * Store a vector for a listing.
+   *
+   * Float32Array is written as a raw little-endian blob rather than JSON: 384
+   * floats are 1.5KB binary against ~9KB of text, and the round trip is a
+   * memcpy instead of a parse.
+   */
+  putEmbedding(record: EmbeddingRecord): void {
+    this.db
+      .prepare(
+        `INSERT INTO embeddings (canonical_key, document_hash, model, doc_version, dims, vector, built_at)
+         VALUES (@canonical_key, @document_hash, @model, @doc_version, @dims, @vector, @built_at)
+         ON CONFLICT(canonical_key) DO UPDATE SET
+           document_hash = excluded.document_hash,
+           model = excluded.model,
+           doc_version = excluded.doc_version,
+           dims = excluded.dims,
+           vector = excluded.vector,
+           built_at = excluded.built_at`,
+      )
+      .run({
+        canonical_key: record.canonicalKey,
+        document_hash: record.documentHash,
+        model: record.model,
+        doc_version: record.docVersion,
+        dims: record.vector.length,
+        vector: Buffer.from(
+          record.vector.buffer,
+          record.vector.byteOffset,
+          record.vector.byteLength,
+        ),
+        built_at: record.builtAt,
+      });
+  }
+
+  /** Every stored vector, regardless of freshness. */
+  allEmbeddings(): EmbeddingRecord[] {
+    const rows = this.db.prepare("SELECT * FROM embeddings").all() as Array<{
+      canonical_key: string;
+      document_hash: string;
+      model: string;
+      doc_version: number;
+      dims: number;
+      vector: Buffer;
+      built_at: string;
+    }>;
+    return rows.map((row) => ({
+      canonicalKey: row.canonical_key,
+      documentHash: row.document_hash,
+      model: row.model,
+      docVersion: row.doc_version,
+      builtAt: row.built_at,
+      // Copy: the Buffer view may not be 4-byte aligned for Float32Array.
+      vector: new Float32Array(
+        row.vector.buffer.slice(row.vector.byteOffset, row.vector.byteOffset + row.vector.byteLength),
+      ),
+    }));
+  }
+
+  /** Drop vectors whose listing no longer exists. */
+  pruneEmbeddings(): number {
+    return this.db
+      .prepare(
+        "DELETE FROM embeddings WHERE canonical_key NOT IN (SELECT canonical_key FROM listings)",
+      )
+      .run().changes;
+  }
+
+  /** Discard the whole derived index. Used to prove it is rebuildable. */
+  clearEmbeddings(): void {
+    this.db.exec("DELETE FROM embeddings");
   }
 
   close(): void {

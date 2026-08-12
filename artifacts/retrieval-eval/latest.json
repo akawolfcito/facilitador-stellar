@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-12T02:19:05.148Z",
+  "generatedAt": "2026-08-12T05:28:21.563Z",
   "corpus": {
     "version": "2026-08-11.1",
     "documents": 65
@@ -26,8 +26,8 @@
         "mrrAt10": 0.2647058823529412,
         "recallAt10": 0.21708683473389356,
         "recallAt20": 0.21708683473389356,
-        "latencyP50Ms": 0.019583000000011452,
-        "latencyP95Ms": 0.05675000000002228
+        "latencyP50Ms": 0.01883399999996982,
+        "latencyP95Ms": 0.03899999999998727
       },
       "heldout": {
         "queries": 18,
@@ -36,8 +36,8 @@
         "mrrAt10": 0.2777777777777778,
         "recallAt10": 0.12685185185185188,
         "recallAt20": 0.12685185185185188,
-        "latencyP50Ms": 0.014416999999980362,
-        "latencyP95Ms": 0.031582999999955064
+        "latencyP50Ms": 0.012917000000015832,
+        "latencyP95Ms": 0.031208999999989828
       },
       "all": {
         "queries": 52,
@@ -46,8 +46,8 @@
         "mrrAt10": 0.2692307692307692,
         "recallAt10": 0.18585164835164836,
         "recallAt20": 0.18585164835164836,
-        "latencyP50Ms": 0.019333000000017364,
-        "latencyP95Ms": 0.038875000000018645
+        "latencyP50Ms": 0.018749999999954525,
+        "latencyP95Ms": 0.031208999999989828
       },
       "byCategory": {
         "exact": {
@@ -57,8 +57,8 @@
           "mrrAt10": 0.75,
           "recallAt10": 0.48214285714285715,
           "recallAt20": 0.48214285714285715,
-          "latencyP50Ms": 0.023374999999987267,
-          "latencyP95Ms": 0.0917500000000473
+          "latencyP50Ms": 0.023125000000050022,
+          "latencyP95Ms": 0.09795899999994617
         },
         "natural-language": {
           "queries": 14,
@@ -67,8 +67,8 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyP50Ms": 0.014416999999980362,
-          "latencyP95Ms": 0.05675000000002228
+          "latencyP50Ms": 0.012582999999949607,
+          "latencyP95Ms": 0.029708000000027823
         },
         "constraint": {
           "queries": 8,
@@ -77,8 +77,8 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyP50Ms": 0.019333000000017364,
-          "latencyP95Ms": 0.027582999999992808
+          "latencyP50Ms": 0.018750000000068212,
+          "latencyP95Ms": 0.02800000000002001
         },
         "ambiguous": {
           "queries": 8,
@@ -87,8 +87,8 @@
           "mrrAt10": 1,
           "recallAt10": 0.7258928571428571,
           "recallAt20": 0.7258928571428571,
-          "latencyP50Ms": 0.019500000000050477,
-          "latencyP95Ms": 0.02879200000000992
+          "latencyP50Ms": 0.01933299999996052,
+          "latencyP95Ms": 0.02845800000000054
         },
         "multi-intent": {
           "queries": 8,
@@ -97,8 +97,8 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyP50Ms": 0.012167000000033568,
-          "latencyP95Ms": 0.026834000000008018
+          "latencyP50Ms": 0.012917000000015832,
+          "latencyP95Ms": 0.02575000000001637
         },
         "mcp": {
           "queries": 6,
@@ -107,8 +107,8 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyP50Ms": 0.022165999999970154,
-          "latencyP95Ms": 0.027415999999959695
+          "latencyP50Ms": 0.02279199999998127,
+          "latencyP95Ms": 0.02883299999996325
         }
       },
       "negatives": {
@@ -127,7 +127,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.8571428571428571,
           "recallAt20": 0.8571428571428571,
-          "latencyMs": 0.0917500000000473
+          "latencyMs": 0.09795899999994617
         },
         {
           "queryId": "ex-02",
@@ -138,7 +138,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.038875000000018645
+          "latencyMs": 0.03899999999998727
         },
         {
           "queryId": "ex-03",
@@ -149,7 +149,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 0.023374999999987267
+          "latencyMs": 0.025917000000049484
         },
         {
           "queryId": "ex-04",
@@ -160,7 +160,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.01104099999997743
+          "latencyMs": 0.01141599999994014
         },
         {
           "queryId": "ex-05",
@@ -171,7 +171,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.3333333333333333,
           "recallAt20": 0.3333333333333333,
-          "latencyMs": 0.02479199999999082
+          "latencyMs": 0.023125000000050022
         },
         {
           "queryId": "ex-06",
@@ -182,7 +182,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 0.009124999999983174
+          "latencyMs": 0.009250000000065484
         },
         {
           "queryId": "ex-07",
@@ -193,7 +193,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.3333333333333333,
           "recallAt20": 0.3333333333333333,
-          "latencyMs": 0.030249999999966803
+          "latencyMs": 0.031208999999989828
         },
         {
           "queryId": "ex-08",
@@ -204,7 +204,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.008500000000026375
+          "latencyMs": 0.008790999999973792
         },
         {
           "queryId": "nl-01",
@@ -215,7 +215,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.006792000000018561
+          "latencyMs": 0.005792000000042208
         },
         {
           "queryId": "nl-02",
@@ -226,7 +226,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.05675000000002228
+          "latencyMs": 0.019292000000064036
         },
         {
           "queryId": "nl-03",
@@ -237,7 +237,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.021500000000003183
+          "latencyMs": 0.01870900000005804
         },
         {
           "queryId": "nl-04",
@@ -248,7 +248,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.0116249999999809
+          "latencyMs": 0.011041999999974905
         },
         {
           "queryId": "nl-05",
@@ -259,7 +259,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.02174999999999727
+          "latencyMs": 0.01812500000005457
         },
         {
           "queryId": "nl-06",
@@ -270,7 +270,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.018584000000032574
+          "latencyMs": 0.018749999999954525
         },
         {
           "queryId": "nl-07",
@@ -281,7 +281,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.00895900000000438
+          "latencyMs": 0.008332999999993262
         },
         {
           "queryId": "nl-08",
@@ -292,7 +292,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.019583000000011452
+          "latencyMs": 0.018542000000024927
         },
         {
           "queryId": "nl-09",
@@ -303,7 +303,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.005875000000003183
+          "latencyMs": 0.005499999999983629
         },
         {
           "queryId": "nl-10",
@@ -314,7 +314,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.005583999999998923
+          "latencyMs": 0.00520799999992505
         },
         {
           "queryId": "nl-11",
@@ -325,7 +325,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.031582999999955064
+          "latencyMs": 0.029708000000027823
         },
         {
           "queryId": "nl-12",
@@ -336,7 +336,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.015499999999974534
+          "latencyMs": 0.014874999999960892
         },
         {
           "queryId": "nl-13",
@@ -347,7 +347,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.013082999999994627
+          "latencyMs": 0.01170799999999872
         },
         {
           "queryId": "nl-14",
@@ -358,7 +358,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.014416999999980362
+          "latencyMs": 0.012582999999949607
         },
         {
           "queryId": "co-01",
@@ -369,7 +369,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.027582999999992808
+          "latencyMs": 0.02800000000002001
         },
         {
           "queryId": "co-02",
@@ -380,7 +380,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.017125000000021373
+          "latencyMs": 0.017291999999997643
         },
         {
           "queryId": "co-03",
@@ -391,7 +391,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.006000000000028649
+          "latencyMs": 0.0060409999999819775
         },
         {
           "queryId": "co-04",
@@ -402,7 +402,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.020458999999959815
+          "latencyMs": 0.019125000000030923
         },
         {
           "queryId": "co-05",
@@ -413,7 +413,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.023666999999989002
+          "latencyMs": 0.02400000000000091
         },
         {
           "queryId": "co-06",
@@ -424,7 +424,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.021250000000009095
+          "latencyMs": 0.021417000000042208
         },
         {
           "queryId": "co-07",
@@ -435,7 +435,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.019333000000017364
+          "latencyMs": 0.018750000000068212
         },
         {
           "queryId": "co-08",
@@ -446,7 +446,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.009292000000016287
+          "latencyMs": 0.010583999999994376
         },
         {
           "queryId": "am-01",
@@ -457,7 +457,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.8571428571428571,
           "recallAt20": 0.8571428571428571,
-          "latencyMs": 0.012750000000039563
+          "latencyMs": 0.013332999999988715
         },
         {
           "queryId": "am-02",
@@ -468,7 +468,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.02879200000000992
+          "latencyMs": 0.02845800000000054
         },
         {
           "queryId": "am-03",
@@ -479,7 +479,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.019500000000050477
+          "latencyMs": 0.01933299999996052
         },
         {
           "queryId": "am-04",
@@ -490,7 +490,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.022625000000005002
+          "latencyMs": 0.022459000000026208
         },
         {
           "queryId": "am-05",
@@ -501,7 +501,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 0.018791999999962172
+          "latencyMs": 0.01908400000002075
         },
         {
           "queryId": "am-06",
@@ -512,7 +512,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.75,
           "recallAt20": 0.75,
-          "latencyMs": 0.008791999999971267
+          "latencyMs": 0.008916999999996733
         },
         {
           "queryId": "am-07",
@@ -523,7 +523,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.3333333333333333,
           "recallAt20": 0.3333333333333333,
-          "latencyMs": 0.027207999999973254
+          "latencyMs": 0.026290999999901032
         },
         {
           "queryId": "am-08",
@@ -534,7 +534,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.2,
           "recallAt20": 0.2,
-          "latencyMs": 0.02508299999999508
+          "latencyMs": 0.02650000000005548
         },
         {
           "queryId": "mi-01",
@@ -545,7 +545,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.00837500000000091
+          "latencyMs": 0.008000000000038199
         },
         {
           "queryId": "mi-02",
@@ -556,7 +556,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.020790999999974247
+          "latencyMs": 0.020958000000064203
         },
         {
           "queryId": "mi-03",
@@ -567,7 +567,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.024666999999965356
+          "latencyMs": 0.023917000000096778
         },
         {
           "queryId": "mi-04",
@@ -578,7 +578,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.017249999999989996
+          "latencyMs": 0.01883399999996982
         },
         {
           "queryId": "mi-05",
@@ -589,7 +589,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.006249999999965894
+          "latencyMs": 0.006041999999979453
         },
         {
           "queryId": "mi-06",
@@ -600,7 +600,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.026834000000008018
+          "latencyMs": 0.02575000000001637
         },
         {
           "queryId": "mi-07",
@@ -611,7 +611,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.011292000000025837
+          "latencyMs": 0.011540999999965607
         },
         {
           "queryId": "mi-08",
@@ -622,7 +622,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.012167000000033568
+          "latencyMs": 0.012917000000015832
         },
         {
           "queryId": "mc-01",
@@ -633,7 +633,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.027415999999959695
+          "latencyMs": 0.02883299999996325
         },
         {
           "queryId": "mc-02",
@@ -644,7 +644,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.012541999999996278
+          "latencyMs": 0.014625000000023647
         },
         {
           "queryId": "mc-03",
@@ -655,7 +655,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.025000000000034106
+          "latencyMs": 0.02458400000000438
         },
         {
           "queryId": "mc-04",
@@ -666,7 +666,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.022165999999970154
+          "latencyMs": 0.02279199999998127
         },
         {
           "queryId": "mc-05",
@@ -677,7 +677,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.012000000000000455
+          "latencyMs": 0.0126669999999649
         },
         {
           "queryId": "mc-06",
@@ -688,13 +688,13 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.025209000000018023
+          "latencyMs": 0.02425000000005184
         }
       ]
     },
     {
       "retriever": "bm25",
-      "description": "Okapi BM25 over weighted document fields (k1=1.2, b=0.75, no stemming)",
+      "description": "Okapi BM25 over the production search tokens (k1=1.2, b=0.75, no stemming)",
       "dev": {
         "queries": 34,
         "ndcgAt5": 0.7773681986614573,
@@ -702,28 +702,28 @@
         "mrrAt10": 0.8980392156862744,
         "recallAt10": 0.8288515406162466,
         "recallAt20": 0.8288515406162466,
-        "latencyP50Ms": 0.02983399999999392,
-        "latencyP95Ms": 0.04354200000000219
+        "latencyP50Ms": 0.028208999999947082,
+        "latencyP95Ms": 0.06608300000004874
       },
       "heldout": {
         "queries": 18,
-        "ndcgAt5": 0.8228354644827349,
-        "ndcgAt10": 0.8297298922379897,
+        "ndcgAt5": 0.8256518739266933,
+        "ndcgAt10": 0.8297224383814888,
         "mrrAt10": 0.9074074074074076,
         "recallAt10": 0.7842592592592593,
         "recallAt20": 0.7842592592592593,
-        "latencyP50Ms": 0.02133299999997007,
-        "latencyP95Ms": 0.03149999999999409
+        "latencyP50Ms": 0.021834000000012566,
+        "latencyP95Ms": 0.037916999999993095
       },
       "all": {
         "queries": 52,
-        "ndcgAt5": 0.7931068675995918,
-        "ndcgAt10": 0.8115649985020047,
+        "ndcgAt5": 0.7940817785609622,
+        "ndcgAt10": 0.8115624183209083,
         "mrrAt10": 0.9012820512820514,
         "recallAt10": 0.813415750915751,
         "recallAt20": 0.813415750915751,
-        "latencyP50Ms": 0.025959000000000287,
-        "latencyP95Ms": 0.040708000000051925
+        "latencyP50Ms": 0.02612499999997908,
+        "latencyP95Ms": 0.051708000000076026
       },
       "byCategory": {
         "exact": {
@@ -733,18 +733,18 @@
           "mrrAt10": 0.9375,
           "recallAt10": 0.8779761904761905,
           "recallAt20": 0.8779761904761905,
-          "latencyP50Ms": 0.013500000000021828,
-          "latencyP95Ms": 0.1435409999999706
+          "latencyP50Ms": 0.013041999999927611,
+          "latencyP95Ms": 0.11733300000003055
         },
         "natural-language": {
           "queries": 14,
-          "ndcgAt5": 0.5844977601813393,
-          "ndcgAt10": 0.5901016411870155,
+          "ndcgAt5": 0.5881188580378571,
+          "ndcgAt10": 0.5903884965161653,
           "mrrAt10": 0.7642857142857142,
           "recallAt10": 0.5988095238095238,
           "recallAt20": 0.5988095238095238,
-          "latencyP50Ms": 0.02845800000000054,
-          "latencyP95Ms": 0.04354200000000219
+          "latencyP50Ms": 0.026666999999974905,
+          "latencyP95Ms": 0.04408300000000054
         },
         "constraint": {
           "queries": 8,
@@ -753,8 +753,8 @@
           "mrrAt10": 1,
           "recallAt10": 0.9583333333333334,
           "recallAt20": 0.9583333333333334,
-          "latencyP50Ms": 0.026040999999963788,
-          "latencyP95Ms": 0.040708000000051925
+          "latencyP50Ms": 0.02612499999997908,
+          "latencyP95Ms": 0.04787499999997635
         },
         "ambiguous": {
           "queries": 8,
@@ -763,18 +763,18 @@
           "mrrAt10": 1,
           "recallAt10": 0.7258928571428571,
           "recallAt20": 0.7258928571428571,
-          "latencyP50Ms": 0.01029199999999264,
-          "latencyP95Ms": 0.03174999999998818
+          "latencyP50Ms": 0.00975000000005366,
+          "latencyP95Ms": 0.011292000000025837
         },
         "multi-intent": {
           "queries": 8,
           "ndcgAt5": 0.8320493341652007,
-          "ndcgAt10": 0.8982297767837651,
+          "ndcgAt10": 0.897711008780626,
           "mrrAt10": 0.9166666666666666,
           "recallAt10": 0.9270833333333333,
           "recallAt20": 0.9270833333333333,
-          "latencyP50Ms": 0.03149999999999409,
-          "latencyP95Ms": 0.03700000000003456
+          "latencyP50Ms": 0.03370800000004692,
+          "latencyP95Ms": 0.051708000000076026
         },
         "mcp": {
           "queries": 6,
@@ -783,14 +783,14 @@
           "mrrAt10": 0.8888888888888888,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyP50Ms": 0.025875000000041837,
-          "latencyP95Ms": 0.03787499999998545
+          "latencyP50Ms": 0.027290999999991072,
+          "latencyP95Ms": 0.03545899999994617
         }
       },
       "negatives": {
         "queries": 4,
         "medianTopScore": 0,
-        "medianTopScoreOnAnswerable": 8.390484110595132,
+        "medianTopScoreOnAnswerable": 8.368167342137728,
         "separationRatio": 0
       },
       "perQuery": [
@@ -803,7 +803,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.8571428571428571,
           "recallAt20": 0.8571428571428571,
-          "latencyMs": 0.1435409999999706
+          "latencyMs": 0.11733300000003055
         },
         {
           "queryId": "ex-02",
@@ -814,7 +814,7 @@
           "mrrAt10": 0.5,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.013459000000011656
+          "latencyMs": 0.06608300000004874
         },
         {
           "queryId": "ex-03",
@@ -825,7 +825,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 0.01037500000001046
+          "latencyMs": 0.010666999999898508
         },
         {
           "queryId": "ex-04",
@@ -836,7 +836,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.02983399999999392
+          "latencyMs": 0.016917000000034932
         },
         {
           "queryId": "ex-05",
@@ -847,7 +847,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.018124999999997726
+          "latencyMs": 0.015083000000004176
         },
         {
           "queryId": "ex-06",
@@ -858,7 +858,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.014083999999968455
+          "latencyMs": 0.013041999999927611
         },
         {
           "queryId": "ex-07",
@@ -869,7 +869,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.013500000000021828
+          "latencyMs": 0.012041999999951258
         },
         {
           "queryId": "ex-08",
@@ -880,7 +880,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.5,
           "recallAt20": 0.5,
-          "latencyMs": 0.013249999999970896
+          "latencyMs": 0.012375000000020009
         },
         {
           "queryId": "nl-01",
@@ -891,7 +891,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.3333333333333333,
           "recallAt20": 0.3333333333333333,
-          "latencyMs": 0.02991700000001174
+          "latencyMs": 0.02816599999994196
         },
         {
           "queryId": "nl-02",
@@ -902,7 +902,7 @@
           "mrrAt10": 0.5,
           "recallAt10": 0.25,
           "recallAt20": 0.25,
-          "latencyMs": 0.038209000000051674
+          "latencyMs": 0.030375000000049113
         },
         {
           "queryId": "nl-03",
@@ -913,7 +913,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.03295900000000529
+          "latencyMs": 0.03237500000000182
         },
         {
           "queryId": "nl-04",
@@ -924,7 +924,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.3333333333333333,
           "recallAt20": 0.3333333333333333,
-          "latencyMs": 0.03395799999998417
+          "latencyMs": 0.03179099999999835
         },
         {
           "queryId": "nl-05",
@@ -935,7 +935,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.025959000000000287
+          "latencyMs": 0.02612499999997908
         },
         {
           "queryId": "nl-06",
@@ -946,7 +946,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.04354200000000219
+          "latencyMs": 0.04408300000000054
         },
         {
           "queryId": "nl-07",
@@ -957,7 +957,7 @@
           "mrrAt10": 0.2,
           "recallAt10": 0.5,
           "recallAt20": 0.5,
-          "latencyMs": 0.02845800000000054
+          "latencyMs": 0.02504199999998491
         },
         {
           "queryId": "nl-08",
@@ -968,7 +968,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.023333999999977095
+          "latencyMs": 0.018790999999964697
         },
         {
           "queryId": "nl-09",
@@ -979,7 +979,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.8,
           "recallAt20": 0.8,
-          "latencyMs": 0.02895899999998619
+          "latencyMs": 0.028208999999947082
         },
         {
           "queryId": "nl-10",
@@ -990,18 +990,18 @@
           "mrrAt10": 1,
           "recallAt10": 0.5,
           "recallAt20": 0.5,
-          "latencyMs": 0.023166999999943982
+          "latencyMs": 0.020874999999932697
         },
         {
           "queryId": "nl-11",
           "split": "heldout",
           "category": "natural-language",
-          "ndcgAt5": 0.9173194127129571,
-          "ndcgAt10": 0.9639988080961093,
+          "ndcgAt5": 0.9680147827042069,
+          "ndcgAt10": 0.9680147827042069,
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.024125000000026375
+          "latencyMs": 0.024792000000047665
         },
         {
           "queryId": "nl-12",
@@ -1012,7 +1012,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 0.023875000000032287
+          "latencyMs": 0.037332999999989624
         },
         {
           "queryId": "nl-13",
@@ -1023,7 +1023,7 @@
           "mrrAt10": 0,
           "recallAt10": 0,
           "recallAt20": 0,
-          "latencyMs": 0.02862500000003365
+          "latencyMs": 0.026666999999974905
         },
         {
           "queryId": "nl-14",
@@ -1034,7 +1034,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.020167000000014923
+          "latencyMs": 0.01841699999999946
         },
         {
           "queryId": "co-01",
@@ -1045,7 +1045,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.040708000000051925
+          "latencyMs": 0.03254099999992377
         },
         {
           "queryId": "co-02",
@@ -1056,7 +1056,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.02420799999998735
+          "latencyMs": 0.024957999999969616
         },
         {
           "queryId": "co-03",
@@ -1067,7 +1067,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.0344159999999647
+          "latencyMs": 0.030291999999917607
         },
         {
           "queryId": "co-04",
@@ -1078,7 +1078,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.03520900000000893
+          "latencyMs": 0.04787499999997635
         },
         {
           "queryId": "co-05",
@@ -1089,7 +1089,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.031791999999995824
+          "latencyMs": 0.031165999999984706
         },
         {
           "queryId": "co-06",
@@ -1100,7 +1100,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.026040999999963788
+          "latencyMs": 0.02612499999997908
         },
         {
           "queryId": "co-07",
@@ -1111,7 +1111,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 0.02058399999998528
+          "latencyMs": 0.020541999999977634
         },
         {
           "queryId": "co-08",
@@ -1122,7 +1122,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.023583000000030552
+          "latencyMs": 0.021834000000012566
         },
         {
           "queryId": "am-01",
@@ -1133,7 +1133,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.8571428571428571,
           "recallAt20": 0.8571428571428571,
-          "latencyMs": 0.010832999999990989
+          "latencyMs": 0.0095410000000129
         },
         {
           "queryId": "am-02",
@@ -1144,7 +1144,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.01029199999999264
+          "latencyMs": 0.010916000000065651
         },
         {
           "queryId": "am-03",
@@ -1155,7 +1155,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.010125000000016371
+          "latencyMs": 0.011292000000025837
         },
         {
           "queryId": "am-04",
@@ -1166,7 +1166,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.03174999999998818
+          "latencyMs": 0.011208000000010543
         },
         {
           "queryId": "am-05",
@@ -1177,7 +1177,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 0.013374999999996362
+          "latencyMs": 0.008499999999912689
         },
         {
           "queryId": "am-06",
@@ -1188,7 +1188,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.75,
           "recallAt20": 0.75,
-          "latencyMs": 0.009500000000002728
+          "latencyMs": 0.00975000000005366
         },
         {
           "queryId": "am-07",
@@ -1199,7 +1199,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.3333333333333333,
           "recallAt20": 0.3333333333333333,
-          "latencyMs": 0.011958000000049651
+          "latencyMs": 0.010416999999961263
         },
         {
           "queryId": "am-08",
@@ -1210,7 +1210,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.2,
           "recallAt20": 0.2,
-          "latencyMs": 0.007666999999969448
+          "latencyMs": 0.009500000000002728
         },
         {
           "queryId": "mi-01",
@@ -1221,7 +1221,7 @@
           "mrrAt10": 0.3333333333333333,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 0.03674999999998363
+          "latencyMs": 0.03670799999997598
         },
         {
           "queryId": "mi-02",
@@ -1232,7 +1232,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.03700000000003456
+          "latencyMs": 0.051708000000076026
         },
         {
           "queryId": "mi-03",
@@ -1243,7 +1243,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.02820800000000645
+          "latencyMs": 0.031791999999995824
         },
         {
           "queryId": "mi-04",
@@ -1254,7 +1254,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.03350000000000364
+          "latencyMs": 0.03370800000004692
         },
         {
           "queryId": "mi-05",
@@ -1265,7 +1265,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.75,
           "recallAt20": 0.75,
-          "latencyMs": 0.03233299999999417
+          "latencyMs": 0.039333999999939806
         },
         {
           "queryId": "mi-06",
@@ -1276,7 +1276,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.028083000000037828
+          "latencyMs": 0.030791000000021995
         },
         {
           "queryId": "mi-07",
@@ -1287,18 +1287,18 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.022291999999993095
+          "latencyMs": 0.02191600000003291
         },
         {
           "queryId": "mi-08",
           "split": "heldout",
           "category": "multi-intent",
           "ndcgAt5": 0.8838695436828513,
-          "ndcgAt10": 0.9612898478942837,
+          "ndcgAt10": 0.9571397038691709,
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.03149999999999409
+          "latencyMs": 0.037916999999993095
         },
         {
           "queryId": "mc-01",
@@ -1309,7 +1309,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.018167000000005373
+          "latencyMs": 0.02408300000001873
         },
         {
           "queryId": "mc-02",
@@ -1320,7 +1320,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.03787499999998545
+          "latencyMs": 0.027290999999991072
         },
         {
           "queryId": "mc-03",
@@ -1331,7 +1331,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.032500000000027285
+          "latencyMs": 0.03545899999994617
         },
         {
           "queryId": "mc-04",
@@ -1342,7 +1342,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.025875000000041837
+          "latencyMs": 0.02995900000007623
         },
         {
           "queryId": "mc-05",
@@ -1353,7 +1353,7 @@
           "mrrAt10": 0.3333333333333333,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.02133299999997007
+          "latencyMs": 0.023541000000022905
         },
         {
           "queryId": "mc-06",
@@ -1364,7 +1364,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 0.02933300000000827
+          "latencyMs": 0.033415999999988344
         }
       ]
     },
@@ -1378,8 +1378,8 @@
         "mrrAt10": 0.9705882352941176,
         "recallAt10": 0.9705882352941176,
         "recallAt20": 0.9901960784313727,
-        "latencyP50Ms": 2.385250000000042,
-        "latencyP95Ms": 3.98108400000001
+        "latencyP50Ms": 2.4626250000001164,
+        "latencyP95Ms": 5.32104100000015
       },
       "heldout": {
         "queries": 18,
@@ -1388,8 +1388,8 @@
         "mrrAt10": 1,
         "recallAt10": 0.9268518518518517,
         "recallAt20": 0.9592592592592593,
-        "latencyP50Ms": 2.0756249999999454,
-        "latencyP95Ms": 3.0810829999998077
+        "latencyP50Ms": 2.4024160000001302,
+        "latencyP95Ms": 3.856457999999975
       },
       "all": {
         "queries": 52,
@@ -1398,8 +1398,8 @@
         "mrrAt10": 0.9807692307692307,
         "recallAt10": 0.9554487179487179,
         "recallAt20": 0.9794871794871796,
-        "latencyP50Ms": 2.2551670000000286,
-        "latencyP95Ms": 3.842292000000043
+        "latencyP50Ms": 2.4626250000001164,
+        "latencyP95Ms": 5.103625000000193
       },
       "byCategory": {
         "exact": {
@@ -1409,8 +1409,8 @@
           "mrrAt10": 1,
           "recallAt10": 0.96875,
           "recallAt20": 1,
-          "latencyP50Ms": 1.8324170000000777,
-          "latencyP95Ms": 3.842292000000043
+          "latencyP50Ms": 1.6815829999998186,
+          "latencyP95Ms": 5.103625000000193
         },
         "natural-language": {
           "queries": 14,
@@ -1419,8 +1419,8 @@
           "mrrAt10": 1,
           "recallAt10": 0.9761904761904762,
           "recallAt20": 1,
-          "latencyP50Ms": 2.366125000000011,
-          "latencyP95Ms": 3.98108400000001
+          "latencyP50Ms": 3.0045420000001286,
+          "latencyP95Ms": 5.517458999999917
         },
         "constraint": {
           "queries": 8,
@@ -1429,8 +1429,8 @@
           "mrrAt10": 0.9375,
           "recallAt10": 0.9166666666666666,
           "recallAt20": 0.9583333333333333,
-          "latencyP50Ms": 2.1830830000001242,
-          "latencyP95Ms": 2.525957999999946
+          "latencyP50Ms": 2.4024160000001302,
+          "latencyP95Ms": 3.80662499999994
         },
         "ambiguous": {
           "queries": 8,
@@ -1439,8 +1439,8 @@
           "mrrAt10": 1,
           "recallAt10": 0.8666666666666667,
           "recallAt20": 0.9083333333333333,
-          "latencyP50Ms": 1.4754579999998896,
-          "latencyP95Ms": 1.716957999999977
+          "latencyP50Ms": 1.3892919999998412,
+          "latencyP95Ms": 1.4712080000001606
         },
         "multi-intent": {
           "queries": 8,
@@ -1449,8 +1449,8 @@
           "mrrAt10": 0.9375,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyP50Ms": 2.586916000000201,
-          "latencyP95Ms": 2.9545830000001843
+          "latencyP50Ms": 3.6434580000000096,
+          "latencyP95Ms": 5.32104100000015
         },
         "mcp": {
           "queries": 6,
@@ -1459,8 +1459,8 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyP50Ms": 2.3707500000000437,
-          "latencyP95Ms": 4.032832999999982
+          "latencyP50Ms": 2.1080830000000788,
+          "latencyP95Ms": 2.510250000000042
         }
       },
       "negatives": {
@@ -1479,7 +1479,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 3.842292000000043
+          "latencyMs": 5.103625000000193
         },
         {
           "queryId": "ex-02",
@@ -1490,7 +1490,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.8324170000000777
+          "latencyMs": 3.4754169999998794
         },
         {
           "queryId": "ex-03",
@@ -1501,7 +1501,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.2018749999999727
+          "latencyMs": 1.8067920000000868
         },
         {
           "queryId": "ex-04",
@@ -1512,7 +1512,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.7784169999999904
+          "latencyMs": 1.5922499999999218
         },
         {
           "queryId": "ex-05",
@@ -1523,7 +1523,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.6050410000000284
+          "latencyMs": 1.6249159999999847
         },
         {
           "queryId": "ex-06",
@@ -1534,7 +1534,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.6486249999998108
+          "latencyMs": 1.6815829999998186
         },
         {
           "queryId": "ex-07",
@@ -1545,7 +1545,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.05337499999996
+          "latencyMs": 1.5612499999999727
         },
         {
           "queryId": "ex-08",
@@ -1556,7 +1556,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.75,
           "recallAt20": 1,
-          "latencyMs": 2.2622499999999945
+          "latencyMs": 1.6832500000000437
         },
         {
           "queryId": "nl-01",
@@ -1567,7 +1567,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 3.98108400000001
+          "latencyMs": 2.964542000000165
         },
         {
           "queryId": "nl-02",
@@ -1578,7 +1578,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 3.390041999999994
+          "latencyMs": 3.5375000000001364
         },
         {
           "queryId": "nl-03",
@@ -1589,7 +1589,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.9395419999998467
+          "latencyMs": 2.6560420000000704
         },
         {
           "queryId": "nl-04",
@@ -1600,7 +1600,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 1,
-          "latencyMs": 2.560416999999916
+          "latencyMs": 3.0045420000001286
         },
         {
           "queryId": "nl-05",
@@ -1611,7 +1611,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.694167000000107
+          "latencyMs": 3.963124999999991
         },
         {
           "queryId": "nl-06",
@@ -1622,7 +1622,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.679332999999815
+          "latencyMs": 2.736667000000125
         },
         {
           "queryId": "nl-07",
@@ -1633,7 +1633,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.2430000000001655
+          "latencyMs": 2.4146249999998872
         },
         {
           "queryId": "nl-08",
@@ -1644,7 +1644,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.9812500000000455
+          "latencyMs": 2.296750000000202
         },
         {
           "queryId": "nl-09",
@@ -1655,7 +1655,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.690458000000035
+          "latencyMs": 5.517458999999917
         },
         {
           "queryId": "nl-10",
@@ -1666,7 +1666,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.2645830000001297
+          "latencyMs": 2.9664580000001024
         },
         {
           "queryId": "nl-11",
@@ -1677,7 +1677,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.0756249999999454
+          "latencyMs": 3.856457999999975
         },
         {
           "queryId": "nl-12",
@@ -1688,7 +1688,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.366125000000011
+          "latencyMs": 3.743750000000091
         },
         {
           "queryId": "nl-13",
@@ -1699,7 +1699,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.069125000000213
+          "latencyMs": 3.6071249999999964
         },
         {
           "queryId": "nl-14",
@@ -1710,7 +1710,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.1100000000001273
+          "latencyMs": 3.0148340000000644
         },
         {
           "queryId": "co-01",
@@ -1721,7 +1721,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.0324999999998
+          "latencyMs": 2.4626250000001164
         },
         {
           "queryId": "co-02",
@@ -1732,7 +1732,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.525957999999946
+          "latencyMs": 2.879750000000058
         },
         {
           "queryId": "co-03",
@@ -1743,7 +1743,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.171333000000004
+          "latencyMs": 2.1698750000000473
         },
         {
           "queryId": "co-04",
@@ -1754,7 +1754,7 @@
           "mrrAt10": 0.5,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 2.386541999999963
+          "latencyMs": 2.339332999999897
         },
         {
           "queryId": "co-05",
@@ -1765,7 +1765,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.522375000000011
+          "latencyMs": 3.80662499999994
         },
         {
           "queryId": "co-06",
@@ -1776,7 +1776,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.349875000000111
+          "latencyMs": 3.7209589999999935
         },
         {
           "queryId": "co-07",
@@ -1787,7 +1787,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 1,
-          "latencyMs": 2.1830830000001242
+          "latencyMs": 2.4024160000001302
         },
         {
           "queryId": "co-08",
@@ -1798,7 +1798,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.8911659999998847
+          "latencyMs": 1.9526670000000195
         },
         {
           "queryId": "am-01",
@@ -1809,7 +1809,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.5042500000001837
+          "latencyMs": 1.3892919999998412
         },
         {
           "queryId": "am-02",
@@ -1820,7 +1820,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.716957999999977
+          "latencyMs": 1.345167000000174
         },
         {
           "queryId": "am-03",
@@ -1831,7 +1831,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.4754579999998896
+          "latencyMs": 1.4207920000001195
         },
         {
           "queryId": "am-04",
@@ -1842,7 +1842,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.4104580000000624
+          "latencyMs": 1.4712080000001606
         },
         {
           "queryId": "am-05",
@@ -1853,7 +1853,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 1,
-          "latencyMs": 1.4389580000001843
+          "latencyMs": 1.4210000000000491
         },
         {
           "queryId": "am-06",
@@ -1864,7 +1864,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.532083000000057
+          "latencyMs": 1.3155420000000504
         },
         {
           "queryId": "am-07",
@@ -1875,7 +1875,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 1.5861660000000484
+          "latencyMs": 1.3911250000001019
         },
         {
           "queryId": "am-08",
@@ -1886,7 +1886,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6,
           "recallAt20": 0.6,
-          "latencyMs": 1.4115419999998267
+          "latencyMs": 1.356999999999971
         },
         {
           "queryId": "mi-01",
@@ -1897,7 +1897,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.646208000000115
+          "latencyMs": 3.6434580000000096
         },
         {
           "queryId": "mi-02",
@@ -1908,7 +1908,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.385250000000042
+          "latencyMs": 4.734541999999919
         },
         {
           "queryId": "mi-03",
@@ -1919,7 +1919,7 @@
           "mrrAt10": 0.5,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.586916000000201
+          "latencyMs": 5.03166699999997
         },
         {
           "queryId": "mi-04",
@@ -1930,7 +1930,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.7089160000000447
+          "latencyMs": 5.32104100000015
         },
         {
           "queryId": "mi-05",
@@ -1941,7 +1941,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.728459000000157
+          "latencyMs": 3.729332999999997
         },
         {
           "queryId": "mi-06",
@@ -1952,7 +1952,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.9545830000001843
+          "latencyMs": 2.6085410000000593
         },
         {
           "queryId": "mi-07",
@@ -1963,7 +1963,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.275165999999899
+          "latencyMs": 3.042500000000018
         },
         {
           "queryId": "mi-08",
@@ -1974,7 +1974,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.068708999999899
+          "latencyMs": 3.6397499999998217
         },
         {
           "queryId": "mc-01",
@@ -1985,7 +1985,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.2489580000001297
+          "latencyMs": 2.211125000000038
         },
         {
           "queryId": "mc-02",
@@ -1996,7 +1996,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 4.032832999999982
+          "latencyMs": 2.2699579999998605
         },
         {
           "queryId": "mc-03",
@@ -2007,7 +2007,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.3707500000000437
+          "latencyMs": 2.0722920000000613
         },
         {
           "queryId": "mc-04",
@@ -2018,7 +2018,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.674041999999872
+          "latencyMs": 2.1080830000000788
         },
         {
           "queryId": "mc-05",
@@ -2029,7 +2029,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.2551670000000286
+          "latencyMs": 2.054582999999866
         },
         {
           "queryId": "mc-06",
@@ -2040,7 +2040,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 3.0810829999998077
+          "latencyMs": 2.510250000000042
         }
       ]
     },
@@ -2054,28 +2054,28 @@
         "mrrAt10": 0.965686274509804,
         "recallAt10": 0.9475490196078432,
         "recallAt20": 1,
-        "latencyP50Ms": 2.3292079999998805,
-        "latencyP95Ms": 2.9400839999998425
+        "latencyP50Ms": 2.900749999999789,
+        "latencyP95Ms": 7.861499999999978
       },
       "heldout": {
         "queries": 18,
-        "ndcgAt5": 0.9267748244734323,
-        "ndcgAt10": 0.9355004256556162,
+        "ndcgAt5": 0.9262093497864939,
+        "ndcgAt10": 0.9349349509686777,
         "mrrAt10": 0.9722222222222222,
         "recallAt10": 0.9083333333333334,
         "recallAt20": 0.9592592592592593,
-        "latencyP50Ms": 2.122334000000137,
-        "latencyP95Ms": 2.4010410000000775
+        "latencyP50Ms": 2.7284169999998085,
+        "latencyP95Ms": 8.205083000000286
       },
       "all": {
         "queries": 52,
-        "ndcgAt5": 0.8866566839219943,
-        "ndcgAt10": 0.9159401694055748,
+        "ndcgAt5": 0.8864609426842078,
+        "ndcgAt10": 0.9157444281677883,
         "mrrAt10": 0.967948717948718,
         "recallAt10": 0.9339743589743589,
         "recallAt20": 0.9858974358974358,
-        "latencyP50Ms": 2.185124999999971,
-        "latencyP95Ms": 2.934332999999924
+        "latencyP50Ms": 2.8151660000003176,
+        "latencyP95Ms": 7.861499999999978
       },
       "byCategory": {
         "exact": {
@@ -2085,8 +2085,8 @@
           "mrrAt10": 1,
           "recallAt10": 0.96875,
           "recallAt20": 1,
-          "latencyP50Ms": 1.5075839999999516,
-          "latencyP95Ms": 2.118332999999893
+          "latencyP50Ms": 1.9956669999996848,
+          "latencyP95Ms": 8.205083000000286
         },
         "natural-language": {
           "queries": 14,
@@ -2095,8 +2095,8 @@
           "mrrAt10": 0.8809523809523808,
           "recallAt10": 0.9380952380952381,
           "recallAt20": 1,
-          "latencyP50Ms": 2.4010410000000775,
-          "latencyP95Ms": 2.992291000000023
+          "latencyP50Ms": 3.2991669999996702,
+          "latencyP95Ms": 9.763249999999971
         },
         "constraint": {
           "queries": 8,
@@ -2105,8 +2105,8 @@
           "mrrAt10": 1,
           "recallAt10": 0.9166666666666666,
           "recallAt20": 1,
-          "latencyP50Ms": 2.3292079999998805,
-          "latencyP95Ms": 2.8125830000001315
+          "latencyP50Ms": 3.533042000000023,
+          "latencyP95Ms": 6.160875000000033
         },
         "ambiguous": {
           "queries": 8,
@@ -2115,18 +2115,18 @@
           "mrrAt10": 1,
           "recallAt10": 0.8666666666666667,
           "recallAt20": 0.9083333333333333,
-          "latencyP50Ms": 1.6063329999999496,
-          "latencyP95Ms": 1.8710829999999987
+          "latencyP50Ms": 2.789874999999938,
+          "latencyP95Ms": 4.267957999999908
         },
         "multi-intent": {
           "queries": 8,
-          "ndcgAt5": 0.9150982701570962,
-          "ndcgAt10": 0.941253690983967,
+          "ndcgAt5": 0.913825952111485,
+          "ndcgAt10": 0.9399813729383558,
           "mrrAt10": 1,
           "recallAt10": 0.9270833333333333,
           "recallAt20": 1,
-          "latencyP50Ms": 2.487124999999878,
-          "latencyP95Ms": 2.934332999999924
+          "latencyP50Ms": 2.900749999999789,
+          "latencyP95Ms": 5.536458000000039
         },
         "mcp": {
           "queries": 6,
@@ -2135,8 +2135,8 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyP50Ms": 2.1219999999998436,
-          "latencyP95Ms": 2.455249999999978
+          "latencyP50Ms": 2.2784590000001117,
+          "latencyP95Ms": 3.4691250000000764
         }
       },
       "negatives": {
@@ -2155,7 +2155,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.118332999999893
+          "latencyMs": 2.8151660000003176
         },
         {
           "queryId": "ex-02",
@@ -2166,7 +2166,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.5522919999998521
+          "latencyMs": 1.9956669999996848
         },
         {
           "queryId": "ex-03",
@@ -2177,7 +2177,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.5075839999999516
+          "latencyMs": 1.7252079999998386
         },
         {
           "queryId": "ex-04",
@@ -2188,7 +2188,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.7762910000001284
+          "latencyMs": 1.6157500000003893
         },
         {
           "queryId": "ex-05",
@@ -2199,7 +2199,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.527749999999969
+          "latencyMs": 2.196707999999944
         },
         {
           "queryId": "ex-06",
@@ -2210,7 +2210,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.4193330000000515
+          "latencyMs": 8.205083000000286
         },
         {
           "queryId": "ex-07",
@@ -2221,7 +2221,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.4827499999998963
+          "latencyMs": 2.0186250000001564
         },
         {
           "queryId": "ex-08",
@@ -2232,7 +2232,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.75,
           "recallAt20": 1,
-          "latencyMs": 1.4772080000000187
+          "latencyMs": 1.9485829999998714
         },
         {
           "queryId": "nl-01",
@@ -2243,7 +2243,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.5097910000001775
+          "latencyMs": 2.6028339999998025
         },
         {
           "queryId": "nl-02",
@@ -2254,7 +2254,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.992291000000023
+          "latencyMs": 4.1765409999998155
         },
         {
           "queryId": "nl-03",
@@ -2265,7 +2265,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.1725000000001273
+          "latencyMs": 2.4201250000000982
         },
         {
           "queryId": "nl-04",
@@ -2276,7 +2276,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 1,
-          "latencyMs": 2.901500000000169
+          "latencyMs": 3.2991669999996702
         },
         {
           "queryId": "nl-05",
@@ -2287,7 +2287,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.646208999999999
+          "latencyMs": 3.3992080000002716
         },
         {
           "queryId": "nl-06",
@@ -2298,7 +2298,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.9400839999998425
+          "latencyMs": 3.1609169999996993
         },
         {
           "queryId": "nl-07",
@@ -2309,7 +2309,7 @@
           "mrrAt10": 0.3333333333333333,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.185124999999971
+          "latencyMs": 4.598124999999982
         },
         {
           "queryId": "nl-08",
@@ -2320,7 +2320,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.409832999999935
+          "latencyMs": 3.0058750000002874
         },
         {
           "queryId": "nl-09",
@@ -2331,7 +2331,7 @@
           "mrrAt10": 0.5,
           "recallAt10": 0.8,
           "recallAt20": 1,
-          "latencyMs": 2.8846249999999145
+          "latencyMs": 7.861499999999978
         },
         {
           "queryId": "nl-10",
@@ -2342,7 +2342,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.257042000000183
+          "latencyMs": 9.763249999999971
         },
         {
           "queryId": "nl-11",
@@ -2353,7 +2353,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.278250000000071
+          "latencyMs": 2.1679999999996653
         },
         {
           "queryId": "nl-12",
@@ -2364,7 +2364,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 1,
-          "latencyMs": 2.4010410000000775
+          "latencyMs": 4.451416999999765
         },
         {
           "queryId": "nl-13",
@@ -2375,7 +2375,7 @@
           "mrrAt10": 0.5,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.1457090000001244
+          "latencyMs": 2.4833330000001297
         },
         {
           "queryId": "nl-14",
@@ -2386,7 +2386,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.122334000000137
+          "latencyMs": 5.1035830000000715
         },
         {
           "queryId": "co-01",
@@ -2397,7 +2397,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.3292079999998805
+          "latencyMs": 2.0322500000002037
         },
         {
           "queryId": "co-02",
@@ -2408,7 +2408,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.4111669999999776
+          "latencyMs": 4.722459000000072
         },
         {
           "queryId": "co-03",
@@ -2419,7 +2419,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.51820900000007
+          "latencyMs": 3.961749999999938
         },
         {
           "queryId": "co-04",
@@ -2430,7 +2430,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 1,
-          "latencyMs": 2.8125830000001315
+          "latencyMs": 3.533042000000023
         },
         {
           "queryId": "co-05",
@@ -2441,7 +2441,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.6926670000000286
+          "latencyMs": 6.048709000000144
         },
         {
           "queryId": "co-06",
@@ -2452,7 +2452,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.281125000000202
+          "latencyMs": 3.1063329999997222
         },
         {
           "queryId": "co-07",
@@ -2463,7 +2463,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 1,
-          "latencyMs": 2.2953339999999116
+          "latencyMs": 6.160875000000033
         },
         {
           "queryId": "co-08",
@@ -2474,7 +2474,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.1387919999999667
+          "latencyMs": 2.2057919999997466
         },
         {
           "queryId": "am-01",
@@ -2485,7 +2485,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.6852920000001177
+          "latencyMs": 4.267957999999908
         },
         {
           "queryId": "am-02",
@@ -2496,7 +2496,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.488083000000188
+          "latencyMs": 1.6454579999999623
         },
         {
           "queryId": "am-03",
@@ -2507,7 +2507,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.6063329999999496
+          "latencyMs": 2.789874999999938
         },
         {
           "queryId": "am-04",
@@ -2518,7 +2518,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.8710829999999987
+          "latencyMs": 1.6963340000002063
         },
         {
           "queryId": "am-05",
@@ -2529,7 +2529,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 1,
-          "latencyMs": 1.6698330000001533
+          "latencyMs": 1.5869579999998678
         },
         {
           "queryId": "am-06",
@@ -2540,7 +2540,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 1.6774159999999938
+          "latencyMs": 3.171374999999898
         },
         {
           "queryId": "am-07",
@@ -2551,7 +2551,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 0.6666666666666666,
-          "latencyMs": 1.5427500000000691
+          "latencyMs": 2.791334000000006
         },
         {
           "queryId": "am-08",
@@ -2562,7 +2562,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6,
           "recallAt20": 0.6,
-          "latencyMs": 1.4551249999999527
+          "latencyMs": 3.285957999999937
         },
         {
           "queryId": "mi-01",
@@ -2573,7 +2573,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.6666666666666666,
           "recallAt20": 1,
-          "latencyMs": 2.934332999999924
+          "latencyMs": 5.096084000000246
         },
         {
           "queryId": "mi-02",
@@ -2584,7 +2584,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.487124999999878
+          "latencyMs": 2.900749999999789
         },
         {
           "queryId": "mi-03",
@@ -2595,7 +2595,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.6735000000001037
+          "latencyMs": 4.0324999999998
         },
         {
           "queryId": "mi-04",
@@ -2606,7 +2606,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.7430839999999534
+          "latencyMs": 2.708042000000205
         },
         {
           "queryId": "mi-05",
@@ -2617,7 +2617,7 @@
           "mrrAt10": 1,
           "recallAt10": 0.75,
           "recallAt20": 1,
-          "latencyMs": 2.637666999999965
+          "latencyMs": 5.536458000000039
         },
         {
           "queryId": "mi-06",
@@ -2628,7 +2628,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.2814590000000408
+          "latencyMs": 2.7284169999998085
         },
         {
           "queryId": "mi-07",
@@ -2639,18 +2639,18 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.306874999999991
+          "latencyMs": 2.5525830000001406
         },
         {
           "queryId": "mi-08",
           "split": "heldout",
           "category": "multi-intent",
-          "ndcgAt5": 0.9838988741111756,
-          "ndcgAt10": 0.9838988741111756,
+          "ndcgAt5": 0.9737203297462859,
+          "ndcgAt10": 0.9737203297462859,
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.314999999999827
+          "latencyMs": 5.477457999999842
         },
         {
           "queryId": "mc-01",
@@ -2661,7 +2661,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.0829580000001897
+          "latencyMs": 2.131417000000056
         },
         {
           "queryId": "mc-02",
@@ -2672,7 +2672,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.1618329999998878
+          "latencyMs": 2.773208000000068
         },
         {
           "queryId": "mc-03",
@@ -2683,7 +2683,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.1655419999999594
+          "latencyMs": 3.4691250000000764
         },
         {
           "queryId": "mc-04",
@@ -2694,7 +2694,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.455249999999978
+          "latencyMs": 2.3670419999998558
         },
         {
           "queryId": "mc-05",
@@ -2705,7 +2705,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.032459000000017
+          "latencyMs": 2.1525000000001455
         },
         {
           "queryId": "mc-06",
@@ -2716,7 +2716,7 @@
           "mrrAt10": 1,
           "recallAt10": 1,
           "recallAt20": 1,
-          "latencyMs": 2.1219999999998436
+          "latencyMs": 2.2784590000001117
         }
       ]
     }

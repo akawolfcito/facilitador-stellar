@@ -10,4 +10,6 @@ dist/
 # local catalog databases
 catalog.db*
 .catalog-e2e.db*
+.catalog-search.db*
 apps/*/.catalog-e2e.db*
+apps/*/.catalog-search.db*

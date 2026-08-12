@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@stellar-bazaar/catalog": "workspace:*",
+    "@stellar-bazaar/search": "workspace:*",
     "@stellar/stellar-sdk": "16.2.0",
     "@x402/core": "2.22.0",
     "@x402/extensions": "2.22.0",

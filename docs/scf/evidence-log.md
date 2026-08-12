@@ -411,6 +411,195 @@ over.
 
 ---
 
+## E-12 — `/discovery/search` runs measured natural-language retrieval over the real catalog
+
+**Claim.** Resources cataloged only by settled Stellar payments are searchable by
+natural language, with the ranking the benchmark measures.
+
+**Command.** `pnpm --filter @stellar-bazaar/e2e-stellar search`
+**Commit.** `<this commit>` · **Artifact.** `artifacts/e2e/stellar-testnet-bazaar-search.json`
+
+Six paid resources, six real testnet settlements, **zero direct database
+inserts**. Deliberately overlapping: three weather services, three
+"translation" services one of which resolves token identifiers rather than
+language.
+
+| Settled resource | transaction |
+|---|---|
+| `/weather/forecast` | `f2d314684a2ff147…` |
+| `/weather/history` | `cef5279fe5549c51…` |
+| `/weather/alerts` | `4686c7c642d56fce…` |
+| `/translate/text` | `aad676cd8cf932cc…` |
+| `/translate/document` | `a60acdb9d0c4409d…` |
+| `/tokens/translation-table` | `325a347a047f39cd…` |
+
+| Query | Top result | Why it is hard |
+|---|---|---|
+| "will it rain tomorrow?" | **Weather Forecast** | no term shared with any listing |
+| "translate this document" | **Document Translation** | must beat two rival "translation" services |
+| "what is the current token translation?" | **Token Translation Table** | the lexical distractor is correct *only* here |
+| "book me a dentist appointment" | **abstained** | top 0.0268 < 0.22 threshold |
+
+Search latency **p50 3.3 ms, p95 4.4 ms** over 6 listings. Index build cost
+(measured on the 65-listing benchmark corpus): 19.9 ms/listing cold, 2 ms total
+to resync when nothing changed.
+
+**Limitations.** Six listings is a tiny catalog; latency here says nothing about
+10⁴+. Exact cosine in-process is used because measurement, not habit, justified
+it — no ANN index, no pgvector. No MCP entry appears in this evidence: an
+`mcp://tool/…` listing cannot arise from an HTTP settlement without an MCP
+transport, so the MCP key space is covered by unit tests instead (E-17 below).
+
+---
+
+## E-13 — Production search preserves the benchmark's ranking behaviour
+
+**Claim.** There is one ranking implementation, not two. The benchmark measures
+the shipped code.
+
+**Command.** `pnpm eval:retrieval` and `pnpm eval:retrieval:integration`
+
+**Mechanism, not promise.** `buildSearchDocument` and `buildSearchTokens` live
+in `@stellar-bazaar/catalog`; the embedder and `Bm25Index` live in
+`@stellar-bazaar/search`. Both the benchmark retrievers and `SearchEngine` import
+those exact symbols. There is no second representation to drift.
+
+| | pure retrieval | production path |
+|---|---|---|
+| held-out nDCG@10 | 95.3% | 84.9% |
+| all-queries nDCG@10 | 91.8% | 84.7% |
+| all-queries Recall@20 | 97.9% | 77.7% |
+
+**The gap is the abstention policy, and only that.** Production returns nothing
+below 0.22 and truncates the tail; pure retrieval always returns top-k. Recall
+falls 20.3 points because relevant-but-weak results are deliberately withheld.
+That is the cost of not recommending paid services the ranker does not believe
+in, and it is reported rather than hidden.
+
+**Wording for the proposal:** "95.3% nDCG@10 on our held-out synthetic
+benchmark" — never as production accuracy. The corpus and labels are
+author-written (see `docs/research/bazaar-retrieval-evaluation.md` §5).
+
+**Dense-first, because the benchmark said so.** RRF hybrid scored 93.5% against
+dense's 95.3% and lost 10.8 points on natural-language queries specifically. It
+is not shipped. The lexical arm is retained for exact-term behaviour and because
+it is the only retriever here that abstains cleanly.
+
+---
+
+## E-14 — Search abstains instead of recommending an irrelevant paid service
+
+**Claim.** A query the catalog cannot serve returns an empty result set with a
+machine-readable reason, not a nearest neighbour.
+
+**Command.** `pnpm calibrate`
+
+Live evidence: "book me a dentist appointment" against the six real listings →
+`{"abstained":{"reason":"BELOW_RELEVANCE_THRESHOLD","topScore":0.0268,"threshold":0.22}}`.
+
+**Threshold selection, dev split only** (34 answerable, 2 unanswerable; the 20
+held-out queries were not read):
+
+```
+   T    coverage  reject  FP-rate  nDCG@10|accepted
+ 0.15    100.0%    50.0%   50.0%      92.0%
+ 0.20     97.1%   100.0%    0.0%      89.4%
+ 0.22     97.1%   100.0%    0.0%      86.9%   <- shipped
+ 0.24     97.1%   100.0%    0.0%      85.4%
+ 0.30     91.2%   100.0%    0.0%      81.2%
+```
+
+0.20–0.24 is a plateau; the middle is the right place to sit because an edge is
+where sampling noise bites.
+
+**On the full query set** (including held-out): coverage **96.2%** on answerable
+queries, **3 of 4** unanswerable rejected, false-positive rate **25%**.
+
+**What it gets wrong — stated, not buried.**
+
+1. **The distributions overlap, on both splits.** Dev: weakest answerable 0.1523
+   < strongest negative 0.1827. Held-out: the one false positive, "print and
+   mail a physical postcard", scores **0.2362** — *above* a legitimate query,
+   "on-chain analytics available on stellar mainnet", at **0.2091**. No
+   threshold separates them. Any T strict enough to refuse the postcard also
+   refuses a real query.
+2. **Two negative queries in the dev split.** Two. Rejection rate can only move
+   in 50% steps, so "100% rejection on dev" is two data points. This is a
+   conservative default, not a calibrated threshold, and it is labelled as such
+   in `DEFAULT_ABSTENTION_THRESHOLD`.
+3. **Bias is deliberate.** A false positive makes an agent pay for the wrong
+   service; a false negative makes it find nothing and retry. We prefer the
+   retry.
+
+**How it evolves.** Real `/discovery/search` logs: queries that returned results
+but were never followed by a settlement are candidate false positives, and the
+score distribution of queries that did convert yields a per-catalog threshold
+instead of one global constant.
+
+---
+
+## E-15 — Deterministic filters execute before semantic ranking
+
+**Claim.** A resource the buyer cannot pay for is not a low-ranked result. It is
+not a result.
+
+**Evidence, live against the six real listings:**
+`?query=will it rain tomorrow?&network=stellar:pubnet` → `0` results,
+`{"abstained":{"reason":"NO_ELIGIBLE_RESOURCES"}}`, while the same query with no
+filter returns Weather Forecast first. `&type=mcp` → `0` results.
+
+**Structural.** `SearchEngine.search` calls `store.list(filters)` to build the
+candidate set *before* the query is embedded. Scoring never sees an ineligible
+listing, so it cannot rank one.
+
+**Unit-tested directly** (`packages/search/test/engine.test.ts`): the top
+semantic match for "weather forecast pro" is a `stellar:pubnet` listing; adding
+`network=stellar:testnet` removes it from the results entirely rather than
+demoting it.
+
+**Security properties tested alongside:** a query containing `'; DROP TABLE
+listings; --` is treated as text and the catalog survives; a filter value
+containing SQL matches nothing and writes nothing; a cursor from a different
+query or a different filter set is refused (`INVALID_CURSOR`) so it cannot page
+across a filter boundary; malformed cursors leak no SQL, table or column names;
+hostile metadata is bounded (8000-char document cap) before reaching the
+embedder; lone surrogates and zero-width characters do not crash indexing;
+search performs no catalog writes; and every result carries `ownershipBinding`
+so search cannot launder a spoofed listing into apparent legitimacy.
+
+---
+
+## E-16 — The search index is derived state, rebuildable from the catalog
+
+**Claim.** The catalog is the source of truth; embeddings are a cache that can
+be destroyed at any time.
+
+**Tested** (`packages/search/test/engine.test.ts`): deleting every row from
+`embeddings` and re-syncing rebuilds all vectors from `listings` and restores
+identical ranking. A restart reuses persisted vectors (0 re-embedded). A
+payment-only update — new amount, unchanged description — re-embeds **nothing**,
+because freshness is keyed on the hash of the search document plus the model id
+and representation version. A descriptive-metadata update re-embeds exactly one
+listing and measurably changes the ranking.
+
+---
+
+## E-17 — MCP canonical keys are structurally correct before MCP exists
+
+**Claim.** MCP listings key on `(resource.url, input.toolName)` per
+specs/extensions/bazaar.md, even though no MCP server is implemented.
+
+`mcpCanonicalKey` builds the key from the raw payload URL rather than upstream's
+`extractDiscoveryInfo().resourceUrl`, because that field is wrong for `mcp:`
+URLs: `mcp:` is not a WHATWG special scheme, so `url.origin` is the string
+`"null"` and the canonical URL comes out as `null/tool/x`. That is
+x402-foundation/x402 issue **#3121**, filed upstream by another team.
+
+**Status.** ✅ Unit-tested. Not exercised by a real payment — see the limitation
+in E-12.
+
+---
+
 ## Open items
 
 | Id | Item | Blocking |

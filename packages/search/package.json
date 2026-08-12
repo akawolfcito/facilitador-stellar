@@ -1,0 +1,22 @@
+{
+  "name": "@stellar-bazaar/search",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": { "node": ">=22.0.0" },
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "4.2.0",
+    "@stellar-bazaar/catalog": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.4",
+    "typescript": "5.7.3",
+    "vitest": "3.0.5"
+  }
+}

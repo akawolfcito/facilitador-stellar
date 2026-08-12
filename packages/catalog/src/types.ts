@@ -115,6 +115,24 @@ export interface DiscoveryPage {
   pagination: { limit: number; offset: number; total: number };
 }
 
+/**
+ * A cached embedding for one listing.
+ *
+ * `documentHash`, `model` and `docVersion` together decide freshness: if any
+ * differs from what the current listing and code would produce, the vector is
+ * stale and gets rebuilt. This is what makes a payment-only update — new
+ * amount, same description — skip re-embedding.
+ */
+export interface EmbeddingRecord {
+  canonicalKey: string;
+  /** Hash of the string `buildSearchDocument` produced. */
+  documentHash: string;
+  model: string;
+  docVersion: number;
+  vector: Float32Array;
+  builtAt: string;
+}
+
 /** Persistence boundary. Implemented by the SQLite store; swappable. */
 export interface CatalogStore {
   /**
@@ -126,5 +144,14 @@ export interface CatalogStore {
   upsert(listing: CatalogListing): CatalogOutcome;
   get(canonicalKey: string): CatalogListing | undefined;
   list(query: DiscoveryQuery): DiscoveryPage;
+
+  // ---- derived search index ----
+  /** Every listing, for a full index rebuild. */
+  all(): CatalogListing[];
+  putEmbedding(record: EmbeddingRecord): void;
+  allEmbeddings(): EmbeddingRecord[];
+  pruneEmbeddings(): number;
+  clearEmbeddings(): void;
+
   close(): void;
 }

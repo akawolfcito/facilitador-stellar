@@ -10,7 +10,8 @@
   "scripts": {
     "provision": "tsx src/provision.ts",
     "e2e": "tsx src/run.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "search": "tsx src/search.ts"
   },
   "dependencies": {
     "@stellar-bazaar/facilitator": "workspace:*",

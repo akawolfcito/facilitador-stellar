@@ -260,6 +260,11 @@ describe("catalog failure cannot falsify a settlement", () => {
       },
       get: () => undefined,
       list: () => ({ resources: [], pagination: { limit: 20, offset: 0, total: 0 } }),
+      all: () => [],
+      putEmbedding: () => {},
+      allEmbeddings: () => [],
+      pruneEmbeddings: () => 0,
+      clearEmbeddings: () => {},
       close: () => {},
     };
 

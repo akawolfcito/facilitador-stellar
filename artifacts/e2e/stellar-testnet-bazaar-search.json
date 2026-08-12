@@ -1,0 +1,180 @@
+{
+  "result": "PASS",
+  "startedAt": "2026-08-12T05:33:31.412Z",
+  "finishedAt": "2026-08-12T05:34:24.732Z",
+  "network": "stellar:testnet",
+  "catalog": {
+    "listings": 6,
+    "builtBy": "settled x402 payments only",
+    "directInserts": 0,
+    "settlements": [
+      {
+        "path": "/weather/forecast",
+        "transaction": "f2d314684a2ff1470876f4f7ae8287b7a7e0897b0172ae885de779a606488e59"
+      },
+      {
+        "path": "/weather/history",
+        "transaction": "cef5279fe5549c51c1d8f60a0d80e70714fd9d4fcc2627b3fd97b4169c3edf54"
+      },
+      {
+        "path": "/weather/alerts",
+        "transaction": "4686c7c642d56fce5f6bc3e2a9e164d386542ad4ab79a2a7663bed173062b11c"
+      },
+      {
+        "path": "/translate/text",
+        "transaction": "aad676cd8cf932cc0844431aad1806569f8f82953ecee1d4cc9bb99361c96027"
+      },
+      {
+        "path": "/translate/document",
+        "transaction": "a60acdb9d0c4409d50680b22359bf25fe4f9e9e04257f0f3352f3a90d9103741"
+      },
+      {
+        "path": "/tokens/translation-table",
+        "transaction": "325a347a047f39cd934ea3bc668603d45ffab24468ce82074402a1f11d0ff3de"
+      }
+    ]
+  },
+  "queries": [
+    {
+      "query": "will it rain tomorrow?",
+      "expected": "/weather/forecast",
+      "topResult": "http://127.0.0.1:4413/weather/forecast",
+      "topServiceName": "Weather Forecast",
+      "ranking": [
+        "Weather Forecast",
+        "Severe Weather Alerts"
+      ],
+      "abstained": null,
+      "latencyMs": 4.4
+    },
+    {
+      "query": "translate this document",
+      "expected": "/translate/document",
+      "topResult": "http://127.0.0.1:4413/translate/document",
+      "topServiceName": "Document Translation",
+      "ranking": [
+        "Document Translation",
+        "Text Translation"
+      ],
+      "abstained": null,
+      "latencyMs": 3.3
+    },
+    {
+      "query": "what is the current token translation?",
+      "expected": "/tokens/translation-table",
+      "topResult": "http://127.0.0.1:4413/tokens/translation-table",
+      "topServiceName": "Token Translation Table",
+      "ranking": [
+        "Token Translation Table",
+        "Text Translation",
+        "Document Translation"
+      ],
+      "abstained": null,
+      "latencyMs": 3.7
+    },
+    {
+      "query": "book me a dentist appointment",
+      "expected": "abstention",
+      "topResult": null,
+      "abstained": {
+        "reason": "BELOW_RELEVANCE_THRESHOLD",
+        "topScore": 0.026828248043668956,
+        "threshold": 0.22
+      },
+      "latencyMs": 3.2
+    }
+  ],
+  "latency": {
+    "p50Ms": 3.3,
+    "p95Ms": 4.4,
+    "samples": 4
+  },
+  "restart": {
+    "total": 6,
+    "reused": 6,
+    "embedded": 0,
+    "pruned": 0
+  },
+  "checks": [
+    {
+      "name": "paid /weather/forecast",
+      "status": "PASS",
+      "detail": "tx f2d314684a2ff147…"
+    },
+    {
+      "name": "paid /weather/history",
+      "status": "PASS",
+      "detail": "tx cef5279fe5549c51…"
+    },
+    {
+      "name": "paid /weather/alerts",
+      "status": "PASS",
+      "detail": "tx 4686c7c642d56fce…"
+    },
+    {
+      "name": "paid /translate/text",
+      "status": "PASS",
+      "detail": "tx aad676cd8cf932cc…"
+    },
+    {
+      "name": "paid /translate/document",
+      "status": "PASS",
+      "detail": "tx a60acdb9d0c4409d…"
+    },
+    {
+      "name": "paid /tokens/translation-table",
+      "status": "PASS",
+      "detail": "tx 325a347a047f39cd…"
+    },
+    {
+      "name": "catalog built by payments only",
+      "status": "PASS",
+      "detail": "6 listings from 6 settlements, 0 direct inserts"
+    },
+    {
+      "name": "\"will it rain tomorrow?\"",
+      "status": "PASS",
+      "detail": "→ Weather Forecast (paraphrase with no shared term)"
+    },
+    {
+      "name": "\"translate this document\"",
+      "status": "PASS",
+      "detail": "→ Document Translation (document translation must outrank the token distractor)"
+    },
+    {
+      "name": "\"what is the current token tran\"",
+      "status": "PASS",
+      "detail": "→ Token Translation Table (the distractor is correct only when the query means identifier translation)"
+    },
+    {
+      "name": "\"book me a dentist appointment\"",
+      "status": "PASS",
+      "detail": "ABSTAINED (BELOW_RELEVANCE_THRESHOLD, top 0.0268 < 0.22)"
+    },
+    {
+      "name": "filter before ranking",
+      "status": "PASS",
+      "detail": "network=stellar:pubnet → 0 results (NO_ELIGIBLE_RESOURCES)"
+    },
+    {
+      "name": "type filter",
+      "status": "PASS",
+      "detail": "type=mcp → 0 results"
+    },
+    {
+      "name": "cursor pagination",
+      "status": "PASS",
+      "detail": "partialResults=true, page2=Historical Weather"
+    },
+    {
+      "name": "search after restart",
+      "status": "PASS",
+      "detail": "6 vectors reused, 0 rebuilt → Weather Forecast"
+    }
+  ],
+  "versions": {
+    "@x402/core": "2.22.0",
+    "@x402/stellar": "2.22.0",
+    "node": "v22.20.0"
+  }
+}

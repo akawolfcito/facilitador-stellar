@@ -21,6 +21,7 @@ import {
   type DiscoveryQuery,
   type ResourceType,
 } from "@stellar-bazaar/catalog";
+import { SearchEngine } from "@stellar-bazaar/search";
 import { x402Facilitator } from "@x402/core/facilitator";
 import type { PaymentPayload, PaymentRequirements } from "@x402/core/types";
 import { ExactStellarScheme } from "@x402/stellar/exact/facilitator";
@@ -40,6 +41,7 @@ export interface BuiltFacilitator {
   /** Addresses of the fee-sponsoring signers, for the health endpoint. */
   signerAddresses: string[];
   catalog: CatalogStore;
+  search: SearchEngine;
 }
 
 /**
@@ -94,6 +96,15 @@ export function buildFacilitator(
   const catalog: CatalogStore = store ?? new SqliteCatalogStore(config.catalogPath);
 
   /**
+   * The derived search index.
+   *
+   * `sync()` is called after every catalog write and once at startup, so the
+   * index converges on the catalog rather than drifting from it. Vectors are
+   * cached by document hash, so a payment-only update re-embeds nothing.
+   */
+  const search = new SearchEngine(catalog);
+
+  /**
    * Automatic cataloging (RFP §3.2): a resource is listed because a payment for
    * it settled, with no separate registration step.
    *
@@ -111,6 +122,19 @@ export function buildFacilitator(
       });
       const slot = catalogSlot.getStore();
       if (slot) slot.outcome = outcome;
+
+      // Bring the derived index up to date. Failure here degrades search
+      // ranking; it must never touch the settlement result, which is already
+      // final by this point.
+      if (outcome.kind === "cataloged") {
+        try {
+          await search.sync();
+        } catch (error) {
+          console.error(
+            JSON.stringify({ event: "search_sync_failed", error: String(error) }),
+          );
+        }
+      }
     });
 
   const app = Fastify({ logger: false, genReqId: () => crypto.randomUUID() });
@@ -203,9 +227,74 @@ export function buildFacilitator(
     return catalog.list(query);
   });
 
+  /**
+   * `GET /discovery/search` — natural-language search over the catalog.
+   *
+   * Pipeline is fixed: parse → hard filters → candidates → rank → abstain →
+   * paginate → respond. The filters run in SQL before any score is read, so a
+   * resource the buyer cannot pay for is not a low-ranked result, it is not a
+   * result (RFP §3.2).
+   *
+   * Ranking is dense cosine over `buildSearchDocument`, the same function and
+   * embedder the benchmark measures. `partialResults` reflects whether matches
+   * were actually truncated. `pagination.cursor` is opaque and bound to the
+   * query and filters that produced it.
+   *
+   * An empty `resources` array with `abstained` set means the catalog declined
+   * to answer rather than recommend a paid service it does not believe in.
+   */
+  app.get("/discovery/search", async (request, reply) => {
+    const q = request.query as Record<string, unknown>;
+
+    const query = typeof q.query === "string" ? q.query.trim() : "";
+    if (!query) {
+      return reply.code(400).send({ error: "query is required" });
+    }
+    if (query.length > 512) {
+      return reply.code(400).send({ error: "query must be 512 characters or fewer" });
+    }
+
+    const type = q.type === "http" || q.type === "mcp" ? (q.type as ResourceType) : undefined;
+    if (q.type !== undefined && type === undefined) {
+      return reply.code(400).send({ error: "type must be 'http' or 'mcp'" });
+    }
+
+    const response = await search.search({
+      query,
+      filters: {
+        ...(type ? { type } : {}),
+        ...(q.payTo ? { payTo: String(q.payTo) } : {}),
+        ...(q.network ? { network: String(q.network) } : {}),
+        ...(q.scheme ? { scheme: String(q.scheme) } : {}),
+        ...(parseExtensions(q.extensions) ? { extensions: parseExtensions(q.extensions) } : {}),
+      },
+      ...(parseIntOr(q.limit, undefined) !== undefined
+        ? { limit: parseIntOr(q.limit, undefined) }
+        : {}),
+      ...(typeof q.cursor === "string" ? { cursor: q.cursor } : {}),
+    });
+
+    if (response.abstained?.reason === "INVALID_CURSOR") {
+      return reply.code(400).send({ error: "cursor does not match this query and filter set" });
+    }
+
+    return {
+      resources: response.resources,
+      partialResults: response.partialResults,
+      pagination: response.pagination,
+      ...(response.abstained ? { abstained: response.abstained } : {}),
+    };
+  });
+
   app.addHook("onClose", async () => {
     catalog.close();
   });
 
-  return { app, facilitator, signerAddresses: signers.map((s) => s.address), catalog };
+  return {
+    app,
+    facilitator,
+    signerAddresses: signers.map((s) => s.address),
+    catalog,
+    search,
+  };
 }
