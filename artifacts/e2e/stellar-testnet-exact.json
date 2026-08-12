@@ -1,0 +1,84 @@
+{
+  "result": "PASS",
+  "network": "stellar:testnet",
+  "scheme": "exact",
+  "x402Version": 2,
+  "transactionHash": "6a8353024fc7bbcfc9bf0b5a060b02be7d7c9cc0f28f2295f4110cfd813faf83",
+  "horizonUrl": "https://horizon-testnet.stellar.org/transactions/6a8353024fc7bbcfc9bf0b5a060b02be7d7c9cc0f28f2295f4110cfd813faf83",
+  "explorerUrl": "https://stellar.expert/explorer/testnet/tx/6a8353024fc7bbcfc9bf0b5a060b02be7d7c9cc0f28f2295f4110cfd813faf83",
+  "onChain": {
+    "successful": true,
+    "ledger": 4097028,
+    "sourceAccount": "GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X"
+  },
+  "valueTransfer": {
+    "asset_type": "native",
+    "type": "transfer",
+    "from": "GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6",
+    "to": "GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR",
+    "amount": "0.0010000"
+  },
+  "amount": "10000",
+  "asset": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+  "assetNote": "native XLM Stellar Asset Contract (SEP-41 interface), 7 decimals",
+  "payer": "GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6",
+  "payTo": "GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR",
+  "facilitatorSigner": "GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X",
+  "resource": "GET /paid-ping",
+  "startedAt": "2026-08-12T03:44:21.249Z",
+  "settledAt": "2026-08-12T03:44:31.879Z",
+  "stages": [
+    {
+      "stage": "facilitator/supported",
+      "status": "PASS",
+      "detail": "{\"x402Version\":2,\"scheme\":\"exact\",\"network\":\"stellar:testnet\",\"extra\":{\"areFeesSponsored\":true}}"
+    },
+    {
+      "stage": "402 on unpaid",
+      "status": "PASS",
+      "detail": "HTTP 402"
+    },
+    {
+      "stage": "payer",
+      "status": "PASS",
+      "detail": "GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6"
+    },
+    {
+      "stage": "retry",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "stage": "resource body",
+      "status": "PASS",
+      "detail": "{\"ok\":true,\"message\":\"paid\"}"
+    },
+    {
+      "stage": "settle",
+      "status": "PASS",
+      "detail": "{\"success\":true,\"payer\":\"GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6\",\"transaction\":\"6a8353024fc7bbcfc9bf0b5a060b02be7d7c9cc0f28f2295f4110cfd813faf83\",\"network\":\"stellar:testnet\"}"
+    },
+    {
+      "stage": "on-chain (horizon)",
+      "status": "PASS",
+      "detail": "ledger 4097028, source GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X"
+    },
+    {
+      "stage": "settled by us",
+      "status": "PASS",
+      "detail": "tx source GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X vs our signer GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X"
+    },
+    {
+      "stage": "value moved",
+      "status": "PASS",
+      "detail": "0.0010000 GBA75K… → GDOEUT…"
+    }
+  ],
+  "versions": {
+    "@x402/core": "2.22.0",
+    "@x402/stellar": "2.22.0",
+    "@x402/fetch": "2.22.0",
+    "@x402/fastify": "2.22.0",
+    "node": "v22.20.0"
+  }
+}

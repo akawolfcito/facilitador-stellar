@@ -8,6 +8,40 @@ importers:
 
   .: {}
 
+  apps/e2e-stellar:
+    dependencies:
+      '@stellar-bazaar/facilitator':
+        specifier: workspace:*
+        version: link:../facilitator
+      '@stellar/stellar-sdk':
+        specifier: 16.2.0
+        version: 16.2.0
+      '@x402/core':
+        specifier: 2.22.0
+        version: 2.22.0
+      '@x402/fastify':
+        specifier: 2.22.0
+        version: 2.22.0(fastify@5.11.3)(typescript@5.7.3)
+      '@x402/fetch':
+        specifier: 2.22.0
+        version: 2.22.0
+      '@x402/stellar':
+        specifier: 2.22.0
+        version: 2.22.0
+      fastify:
+        specifier: 5.11.3
+        version: 5.11.3
+    devDependencies:
+      '@types/node':
+        specifier: 22.13.4
+        version: 22.13.4
+      tsx:
+        specifier: 4.21.0
+        version: 4.21.0
+      typescript:
+        specifier: 5.7.3
+        version: 5.7.3
+
   apps/facilitator:
     dependencies:
       '@stellar/stellar-sdk':
@@ -805,6 +839,18 @@ packages:
 
   '@x402/extensions@2.22.0':
     resolution: {integrity: sha512-E5Ma1Fs1GwO/ET7KtGUI7dPuVFoINR+mwTWVoGdNi3DsJBJKDWSA7Ta7bDgSANzV3XCAMK9gvz/VSItZliApMA==}
+
+  '@x402/fastify@2.22.0':
+    resolution: {integrity: sha512-r20i68tbZcKQOzai7jsaqbv6DPN8GXFEcC4WYUvb+QlVpQCKfASq/+ff1ZjC3yVPpSzGEwT1D3k8Yt338E6oTg==}
+    peerDependencies:
+      '@x402/paywall': ^2.22.0
+      fastify: ^5.0.0
+    peerDependenciesMeta:
+      '@x402/paywall':
+        optional: true
+
+  '@x402/fetch@2.22.0':
+    resolution: {integrity: sha512-+uMCPGXw1h7YGjS778YnwUi7YvZ5Ny8XeFjBL8TvQuy9T+j8O5x/zDQu9nyNaOa/OppTqVh+CkpW+xs17ePyXg==}
 
   '@x402/stellar@2.22.0':
     resolution: {integrity: sha512-nih0BKl+6EaWrfaocm9/uu1YPfGS+QzmjI9ZY/nNbm05Z2las92rDqxqYWVXEeWz0QNtav3E3w45ctBpTvbakg==}
@@ -2029,6 +2075,21 @@ snapshots:
       - ethers
       - typescript
       - utf-8-validate
+
+  '@x402/fastify@2.22.0(fastify@5.11.3)(typescript@5.7.3)':
+    dependencies:
+      '@x402/core': 2.22.0
+      '@x402/extensions': 2.22.0(typescript@5.7.3)
+      fastify: 5.11.3
+    transitivePeerDependencies:
+      - bufferutil
+      - ethers
+      - typescript
+      - utf-8-validate
+
+  '@x402/fetch@2.22.0':
+    dependencies:
+      '@x402/core': 2.22.0
 
   '@x402/stellar@2.22.0':
     dependencies:
