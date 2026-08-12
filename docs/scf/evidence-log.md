@@ -600,6 +600,117 @@ in E-12.
 
 ---
 
+## E-18 — Upstream x402 e2e suite against our facilitator — PARTIAL
+
+**Status.** ⚠️ **Not green.** 8 of 9 payment scenarios pass; Bazaar discovery
+validation reaches 4 of 5 endpoints. Two gaps remain, both identified precisely
+and neither hidden.
+
+**Command.**
+```
+pnpm --filter @stellar-bazaar/e2e-stellar provision       # once
+pnpm --filter @stellar-bazaar/e2e-stellar provision:usdc  # trustlines
+e2e-harness/run-upstream-e2e.sh --asset native
+```
+
+| | |
+|---|---|
+| upstream commit | `c8247c4cd15f29498474404d94636e7dbb894e86` |
+| facilitator URL | `http://localhost:4027` (our adapter, spawned by the harness) |
+| network / scheme | `stellar:testnet` / `exact` |
+| Bazaar extension | enabled (`--extensions=bazaar`) |
+| artifact | `artifacts/e2e/upstream-e2e-results.json` |
+
+**How our facilitator enters the suite.** Upstream discovers facilitators under
+`e2e/facilitators/external-proxies/`, a directory it gitignores for exactly this
+purpose (`e2e/facilitators/external-proxies/README.md`). Our adapter
+(`e2e-harness/proxy/`) maps harness env onto our config, adds a `/close`
+endpoint the rig calls between scenarios, and imports `buildFacilitator`
+unmodified. **No client or protocol package is patched.**
+
+**Payment results — 8/9.**
+
+| Server | Client | Result |
+|---|---|---|
+| express | axios, fetch | ✅ ✅ |
+| fastify | axios, fetch | ✅ ✅ |
+| hono | axios | ✅ |
+| hono | fetch | ❌ `SyntaxError: Unexpected end of JSON input` |
+| next | axios, fetch | ✅ ✅ |
+| mcp | mcp | ✅ |
+
+The single failure is an empty response body on one combination; the same client
+passes against express, fastify and next, and the same server passes with axios.
+It has the shape of a flake, but it has been observed once and **is not yet
+proven to be one** — it needs repeat runs before anyone calls it transient.
+
+**Discovery validation — 4/5.** Cataloged from real settlements during the run:
+`http://localhost:4022/exact/stellar`, `:4023`, `:4024`, and
+`mcp://tool/exact_stellar#tool=exact_stellar`. Missing:
+`GET http://localhost:4025/api/exact/stellar/withx402` (the Next `withX402`
+wrapper). Its two payment tests pass, so a settlement occurred and the listing
+did not. Root cause not yet established — unfinished, not explained away.
+
+**Notable:** the MCP resource cataloged correctly under our
+`(resource.url, toolName)` key from a real payment, which upgrades E-17 from
+unit-tested to observed end to end.
+
+### Failures found and fixed, classified before touching code
+
+| # | Symptom | Class | Fix |
+|---|---|---|---|
+| 1 | `Missing required env: STELLAR_NETWORK` | CONFIG | `PORT`/`STELLAR_NETWORK` are injected at spawn but the pre-flight validator reads ambient env; moved them to `optional` |
+| 2 | `Top-level await not supported with "cjs"` | OUR BUG | adapter renamed `.ts` → `.mts`; tsx picks module format from the nearest `package.json` |
+| 3 | `Cannot find package '@stellar-bazaar/facilitator'` | OUR BUG | Node resolves imports from the file's location, not `--dir`; adapter became a workspace package |
+| 4 | `Cannot find module @x402/express/dist/cjs` | HARNESS ASSUMPTION | e2e links `../typescript/packages/*` via `workspace:*`; they must be built first |
+| 5 | `privateKeyToAccount(undefined)` | HARNESS ASSUMPTION | `createE2EClient()` builds EVM **and** SVM accounts unconditionally (`clients/typescript/client.ts:89-92`) before family filtering, so a Stellar-only run needs both credentials present |
+| 6 | `@solana/keys` rejects the key | OUR BUG | a constant-byte array is not a valid ed25519 keypair; generate a real one |
+| 7 | Next server won't start | HARNESS ASSUMPTION | `next start` needs `next build`; upstream's `setup.sh` does it, a bare install does not |
+| 8 | `Cannot read properties of undefined (reading 'length')` in discovery validation | **OUR BUG — wire format** | see below |
+
+### The one that matters
+
+Our `GET /discovery/resources` returned `{resources, pagination}`. The contract
+stock clients parse is `{x402Version, items, pagination}`
+(`@x402/extensions@2.22.0` `bazaar/facilitatorClient.ts:126-140`) — and note the
+asymmetry, search returns `resources` while list returns `items`. Each resource
+must also carry `resource`, `type`, `x402Version`, `accepts[]` and `lastUpdated`;
+we were emitting our storage column names.
+
+Settlement was correct throughout. The catalog was simply unreadable by any
+stock client — precisely the failure RFP §3.6 describes: *"correct settlement
+plus a non conformant wire format produces an unusable service"*. We had read
+the spec's prose, which documents the filters and not the envelope, and inferred
+the rest. **This is the concrete argument for why the RFP makes an upstream e2e
+run an acceptance criterion, and it is the single most valuable thing this run
+produced.** Fixed in `packages/catalog/src/wire.ts`.
+
+### Asset caveat — read this before quoting any number above
+
+The run uses `--asset native`, which rewrites the harness's Stellar route to
+price in the native XLM Stellar Asset Contract. **This is not a USDC conformance
+run.** The upstream default prices in USD, which resolves to testnet USDC
+`CBIELTK6…`, and the buyer holds none: the client's own simulation fails with
+`Error(Contract, #13): trustline entry is missing for account`.
+
+USDC trustlines are now created for buyer and seller — real testnet transactions
+`7577e0e010b111ba…` and `c48f71d14a9ff561…` — but **testnet USDC is minted only
+by Circle's faucet, which is interactive**. Buyer balance is `0.0000000`.
+Unblocking needs a human at https://faucet.circle.com funding
+`GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6`.
+
+### Permanent assertion against settling elsewhere
+
+`apps/facilitator/src/own-facilitator.ts` — `assertOwnFacilitator` rejects a
+missing URL or any known public-facilitator host; `assertSettledByUs` rejects a
+transaction whose on-chain source account is not one of our signers. The adapter
+calls the first at startup, so a conformance run pointed at
+`DEFAULT_FACILITATOR_URL` fails instead of passing. Ten tests, including one that
+pins the upstream default to `https://x402.org/facilitator` so a change there
+surfaces here, and one that reproduces the E-06a miscall.
+
+---
+
 ## Open items
 
 | Id | Item | Blocking |

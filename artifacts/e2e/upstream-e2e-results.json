@@ -1,0 +1,158 @@
+{
+  "summary": {
+    "total": 9,
+    "passed": 8,
+    "failed": 1,
+    "networkMode": "testnet"
+  },
+  "results": [
+    {
+      "testNumber": 1,
+      "client": "typescript/http/axios",
+      "server": "typescript/http/express",
+      "endpoint": "/exact/stellar",
+      "facilitator": "stellar-bazaar",
+      "protocolFamily": "stellar",
+      "passed": true,
+      "transaction": "b7a8963ea2640453df774bcbefce962e6a6f04589b91ba21b2c30cd2d734aa65",
+      "network": "stellar:testnet"
+    },
+    {
+      "testNumber": 2,
+      "client": "typescript/http/fetch",
+      "server": "typescript/http/express",
+      "endpoint": "/exact/stellar",
+      "facilitator": "stellar-bazaar",
+      "protocolFamily": "stellar",
+      "passed": true,
+      "transaction": "ca982166ec41df40557c4a9bf3289648abe3cc5d1ee11b8fdd540707ffb985ca",
+      "network": "stellar:testnet"
+    },
+    {
+      "testNumber": 3,
+      "client": "typescript/http/axios",
+      "server": "typescript/http/fastify",
+      "endpoint": "/exact/stellar",
+      "facilitator": "stellar-bazaar",
+      "protocolFamily": "stellar",
+      "passed": true,
+      "transaction": "d2771211cbbb404bde23877f0f50b1a1696774e10c3a117904c7b57899c86107",
+      "network": "stellar:testnet"
+    },
+    {
+      "testNumber": 4,
+      "client": "typescript/http/fetch",
+      "server": "typescript/http/fastify",
+      "endpoint": "/exact/stellar",
+      "facilitator": "stellar-bazaar",
+      "protocolFamily": "stellar",
+      "passed": true,
+      "transaction": "99e2f7b7f41e64e40d5de706ea095662888b930395b008e2f4a1fd616586c89c",
+      "network": "stellar:testnet"
+    },
+    {
+      "testNumber": 5,
+      "client": "typescript/http/axios",
+      "server": "typescript/http/hono",
+      "endpoint": "/exact/stellar",
+      "facilitator": "stellar-bazaar",
+      "protocolFamily": "stellar",
+      "passed": true,
+      "transaction": "939b12334f347e91f2d039307d16ade431cb997d6427f9d148d39fcc7b113259",
+      "network": "stellar:testnet"
+    },
+    {
+      "testNumber": 6,
+      "client": "typescript/http/fetch",
+      "server": "typescript/http/hono",
+      "endpoint": "/exact/stellar",
+      "facilitator": "stellar-bazaar",
+      "protocolFamily": "stellar",
+      "passed": false,
+      "error": "<anonymous_script>:1\n\n\nSyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)\n    at successSteps (node:internal/deps/undici/undici:5719:27)\n    at fullyReadBody (node:internal/deps/undici/undici:4609:9)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async consumeBody (node:internal/deps/undici/undici:5728:7)\n    at async issueRequest (/Users/wolfcito/development/BLCKCHN/GOOD_WOLF_LABS/akawolfcito/facilitador-stellar/.x402-upstream/e2e/clients/typescript/http/fetch/index.ts:22:16)\n    at async runClientScenario (/Users/wolfcito/development/BLCKCHN/GOOD_WOLF_LABS/akawolfcito/facilitador-stellar/.x402-upstream/e2e/clients/typescript/client.ts:330:20)\n    at async <anonymous> (/Users/wolfcito/development/BLCKCHN/GOOD_WOLF_LABS/akawolfcito/facilitador-stellar/.x402-upstream/e2e/clients/typescript/http/fetch/index.ts:37:1)\n\nNode.js v22.20.0\n"
+    },
+    {
+      "testNumber": 7,
+      "client": "typescript/http/axios",
+      "server": "typescript/http/next",
+      "endpoint": "/api/exact/stellar/withx402",
+      "facilitator": "stellar-bazaar",
+      "protocolFamily": "stellar",
+      "passed": true,
+      "transaction": "54832b0c4f6a1dae0e4c176639d074a12cfb46e9d69dee3317fcda34502c7072",
+      "network": "stellar:testnet"
+    },
+    {
+      "testNumber": 8,
+      "client": "typescript/http/fetch",
+      "server": "typescript/http/next",
+      "endpoint": "/api/exact/stellar/withx402",
+      "facilitator": "stellar-bazaar",
+      "protocolFamily": "stellar",
+      "passed": true,
+      "transaction": "b937d70cc369843f704b1087545c87c5a937af8ec58b68e42bac6bb4a9a566f0",
+      "network": "stellar:testnet"
+    },
+    {
+      "testNumber": 9,
+      "client": "typescript/mcp",
+      "server": "typescript/mcp",
+      "endpoint": "exact_stellar",
+      "facilitator": "stellar-bazaar",
+      "protocolFamily": "stellar",
+      "passed": true,
+      "transaction": "9ba8c48a6aeced9156e3be2ae89f9f15d449929a6cf40d536de537753b850920",
+      "network": "stellar:testnet"
+    }
+  ],
+  "breakdowns": {
+    "byFacilitator": {
+      "stellar-bazaar": {
+        "passed": 8,
+        "failed": 1
+      }
+    },
+    "byServer": {
+      "typescript/http/express": {
+        "passed": 2,
+        "failed": 0
+      },
+      "typescript/http/fastify": {
+        "passed": 2,
+        "failed": 0
+      },
+      "typescript/http/hono": {
+        "passed": 1,
+        "failed": 1
+      },
+      "typescript/http/next": {
+        "passed": 2,
+        "failed": 0
+      },
+      "typescript/mcp": {
+        "passed": 1,
+        "failed": 0
+      }
+    },
+    "byClient": {
+      "typescript/http/axios": {
+        "passed": 4,
+        "failed": 0
+      },
+      "typescript/http/fetch": {
+        "passed": 3,
+        "failed": 1
+      },
+      "typescript/mcp": {
+        "passed": 1,
+        "failed": 0
+      }
+    },
+    "byProtocolFamily": {
+      "stellar": {
+        "passed": 8,
+        "failed": 1
+      }
+    }
+  }
+}

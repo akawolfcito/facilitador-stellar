@@ -82,13 +82,14 @@ describe("GET /discovery/resources", () => {
   it("returns every listing with pagination metadata", async () => {
     const { status, body } = await get("/discovery/resources");
     expect(status).toBe(200);
-    expect(body.resources).toHaveLength(2);
+    expect(body.items).toHaveLength(2);
     expect(body.pagination).toEqual({ limit: 20, offset: 0, total: 2 });
+    expect(body.x402Version).toBe(2);
   });
 
   it("exposes the ownership binding on every listing", async () => {
     const { body } = await get("/discovery/resources");
-    for (const resource of body.resources) {
+    for (const resource of body.items) {
       expect(resource.ownerPayTo).toBe(SELLER);
       // Buyers are told the binding is trust-on-first-use, not proof of URL
       // control. See docs/security/catalog-ownership-model.md §5.
@@ -97,8 +98,8 @@ describe("GET /discovery/resources", () => {
   });
 
   it("filters by type", async () => {
-    expect((await get("/discovery/resources?type=mcp")).body.resources).toHaveLength(1);
-    expect((await get("/discovery/resources?type=http")).body.resources).toHaveLength(1);
+    expect((await get("/discovery/resources?type=mcp")).body.items).toHaveLength(1);
+    expect((await get("/discovery/resources?type=http")).body.items).toHaveLength(1);
   });
 
   it("rejects an unknown type rather than silently ignoring it", async () => {
@@ -107,29 +108,29 @@ describe("GET /discovery/resources", () => {
   });
 
   it("filters by payTo, network and scheme", async () => {
-    expect((await get(`/discovery/resources?payTo=${SELLER}`)).body.resources).toHaveLength(2);
-    expect((await get("/discovery/resources?payTo=GNOBODY")).body.resources).toHaveLength(0);
+    expect((await get(`/discovery/resources?payTo=${SELLER}`)).body.items).toHaveLength(2);
+    expect((await get("/discovery/resources?payTo=GNOBODY")).body.items).toHaveLength(0);
     expect(
-      (await get("/discovery/resources?network=stellar:pubnet")).body.resources,
+      (await get("/discovery/resources?network=stellar:pubnet")).body.items,
     ).toHaveLength(1);
-    expect((await get("/discovery/resources?scheme=upto")).body.resources).toHaveLength(0);
+    expect((await get("/discovery/resources?scheme=upto")).body.items).toHaveLength(0);
   });
 
   it("accepts extensions as a comma list and as repeated params", async () => {
-    expect((await get("/discovery/resources?extensions=bazaar")).body.resources).toHaveLength(2);
+    expect((await get("/discovery/resources?extensions=bazaar")).body.items).toHaveLength(2);
     expect(
-      (await get("/discovery/resources?extensions=bazaar,builder-code")).body.resources,
+      (await get("/discovery/resources?extensions=bazaar,builder-code")).body.items,
     ).toHaveLength(0);
     expect(
-      (await get("/discovery/resources?extensions=bazaar&extensions=bazaar")).body.resources,
+      (await get("/discovery/resources?extensions=bazaar&extensions=bazaar")).body.items,
     ).toHaveLength(2);
   });
 
   it("paginates deterministically", async () => {
     const first = await get("/discovery/resources?limit=1&offset=0");
     const second = await get("/discovery/resources?limit=1&offset=1");
-    expect(first.body.resources[0].canonicalKey).toBe("https://a.example/one");
-    expect(second.body.resources[0].canonicalKey).toBe("mcp://tool/summarize#tool=summarize");
+    expect(first.body.items[0].canonicalKey).toBe("https://a.example/one");
+    expect(second.body.items[0].canonicalKey).toBe("mcp://tool/summarize#tool=summarize");
     expect(first.body.pagination.total).toBe(2);
   });
 

@@ -1,0 +1,19 @@
+{
+  "name": "stellar-bazaar",
+  "type": "facilitator",
+  "enabled": true,
+  "language": "typescript",
+  "protocolFamilies": ["stellar"],
+  "x402Versions": [2],
+  "schemes": ["exact"],
+  "extensions": ["bazaar"],
+  "endpoints": [
+    { "path": "/health", "health": true },
+    { "path": "/close", "close": true }
+  ],
+  "environment": {
+    "//": "Only operator-supplied variables belong here. PORT and STELLAR_NETWORK are injected by the harness at spawn time (generic-facilitator.ts: injectNetworkEnv), but the pre-flight validator checks the ambient environment, so declaring them required fails before anything runs.",
+    "required": ["FACILITATOR_STELLAR_PRIVATE_KEY"],
+    "optional": ["PORT", "STELLAR_NETWORK", "STELLAR_RPC_URL", "CATALOG_PATH", "STELLAR_BAZAAR_ROOT"]
+  }
+}

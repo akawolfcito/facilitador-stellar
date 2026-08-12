@@ -9,7 +9,8 @@
   },
   "exports": {
     "./app": "./src/app.ts",
-    "./config": "./src/config.ts"
+    "./config": "./src/config.ts",
+    "./own-facilitator": "./src/own-facilitator.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",

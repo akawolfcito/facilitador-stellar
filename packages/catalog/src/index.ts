@@ -9,6 +9,12 @@ export {
 export type { CatalogSettlementInput } from "./catalog.js";
 export { httpCanonicalKey, mcpCanonicalKey, normalizeResourceUrl } from "./canonical.js";
 export { METADATA_VERSION, SqliteCatalogStore } from "./store.js";
+export {
+  DISCOVERY_X402_VERSION,
+  toDiscoveryResource,
+  toDiscoveryResourcesResponse,
+  toDiscoverySearchResponse,
+} from "./wire.js";
 export type {
   BazaarStatus,
   CatalogListing,

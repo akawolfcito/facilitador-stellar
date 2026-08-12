@@ -1,0 +1,17 @@
+{
+  "name": "@stellar-bazaar/upstream-e2e-proxy",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": { "node": ">=22.0.0" },
+  "scripts": { "typecheck": "tsc --noEmit" },
+  "dependencies": {
+    "@stellar-bazaar/facilitator": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.4",
+    "tsx": "4.21.0",
+    "typescript": "5.7.3"
+  }
+}

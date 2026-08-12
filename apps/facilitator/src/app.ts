@@ -18,6 +18,8 @@ import {
   encodeExtensionResponses,
   type CatalogOutcome,
   type CatalogStore,
+  toDiscoveryResourcesResponse,
+  toDiscoverySearchResponse,
   type DiscoveryQuery,
   type ResourceType,
 } from "@stellar-bazaar/catalog";
@@ -224,7 +226,7 @@ export function buildFacilitator(
         : {}),
     };
 
-    return catalog.list(query);
+    return toDiscoveryResourcesResponse(catalog.list(query));
   });
 
   /**
@@ -278,12 +280,12 @@ export function buildFacilitator(
       return reply.code(400).send({ error: "cursor does not match this query and filter set" });
     }
 
-    return {
-      resources: response.resources,
-      partialResults: response.partialResults,
-      pagination: response.pagination,
-      ...(response.abstained ? { abstained: response.abstained } : {}),
-    };
+    return toDiscoverySearchResponse(
+      response.resources,
+      response.partialResults,
+      response.pagination,
+      response.abstained,
+    );
   });
 
   app.addHook("onClose", async () => {

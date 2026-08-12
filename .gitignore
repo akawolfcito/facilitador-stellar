@@ -13,3 +13,7 @@ catalog.db*
 .catalog-search.db*
 apps/*/.catalog-e2e.db*
 apps/*/.catalog-search.db*
+
+# upstream x402 clone for conformance runs
+.x402-upstream/
+.catalog-upstream-e2e.db*
