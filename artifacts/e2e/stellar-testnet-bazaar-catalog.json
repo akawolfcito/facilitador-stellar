@@ -1,0 +1,166 @@
+{
+  "result": "PASS",
+  "transactionHash": "d833ca60f9f8fc22498cdb481c55a94909f061ae5c4d5f1bb1d0278c745afd5d",
+  "canonicalResource": "http://127.0.0.1:4403/paid-ping",
+  "payTo": "GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR",
+  "network": "stellar:testnet",
+  "scheme": "exact",
+  "asset": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+  "amount": "10000",
+  "catalogedAt": "2026-08-12T04:08:31.734Z",
+  "automatic": true,
+  "registrationCallsMade": 0,
+  "ownership": {
+    "ownerPayTo": "GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR",
+    "binding": "tofu",
+    "note": "trust on first use — x402 proves payment recipient authenticity, not URL ownership. See docs/security/catalog-ownership-model.md"
+  },
+  "persistedAcrossRestart": true,
+  "extensionOutcome": {
+    "bazaar": {
+      "status": "success"
+    }
+  },
+  "discoveryResponse": {
+    "query": "network=stellar:testnet",
+    "resources": [
+      {
+        "canonicalKey": "http://127.0.0.1:4403/paid-ping",
+        "type": "http",
+        "resource": "http://127.0.0.1:4403/paid-ping",
+        "method": "GET",
+        "serviceName": "Paid Ping",
+        "description": "Returns a fixed acknowledgement once a payment settles.",
+        "tags": [
+          "demo",
+          "ping",
+          "stellar"
+        ],
+        "mimeType": "application/json",
+        "discoveryInfo": {
+          "input": {
+            "type": "http",
+            "method": "GET",
+            "queryParams": {
+              "city": "Medellin"
+            }
+          },
+          "output": {
+            "type": "json",
+            "example": {
+              "ok": true,
+              "message": "paid"
+            }
+          }
+        },
+        "extensions": {
+          "bazaar": {
+            "info": {
+              "input": {
+                "type": "http",
+                "method": "GET",
+                "queryParams": {
+                  "city": "Medellin"
+                }
+              },
+              "output": {
+                "type": "json",
+                "example": {
+                  "ok": true,
+                  "message": "paid"
+                }
+              }
+            },
+            "schema": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "type": "object",
+              "properties": {
+                "input": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "http"
+                    },
+                    "method": {
+                      "type": "string",
+                      "enum": [
+                        "GET"
+                      ]
+                    },
+                    "queryParams": {
+                      "type": "object",
+                      "properties": {
+                        "city": {
+                          "type": "string",
+                          "description": "City name to look up, for example Medellin"
+                        }
+                      },
+                      "required": [
+                        "city"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "method"
+                  ],
+                  "additionalProperties": false
+                },
+                "output": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "example": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                }
+              },
+              "required": [
+                "input"
+              ]
+            }
+          }
+        },
+        "payTo": "GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR",
+        "network": "stellar:testnet",
+        "scheme": "exact",
+        "asset": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+        "amount": "10000",
+        "x402Version": 2,
+        "ownerPayTo": "GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR",
+        "ownershipBinding": "tofu",
+        "firstSeenAt": "2026-08-12T04:08:31.734Z",
+        "lastSeenAt": "2026-08-12T04:08:31.734Z",
+        "lastSettlementTx": "d833ca60f9f8fc22498cdb481c55a94909f061ae5c4d5f1bb1d0278c745afd5d",
+        "metadataVersion": 1
+      }
+    ],
+    "pagination": {
+      "limit": 20,
+      "offset": 0,
+      "total": 1
+    }
+  },
+  "filterCheck": {
+    "resources": 1,
+    "pagination": {
+      "limit": 10,
+      "offset": 0,
+      "total": 1
+    }
+  },
+  "versions": {
+    "@x402/core": "2.22.0",
+    "@x402/stellar": "2.22.0",
+    "@x402/fetch": "2.22.0",
+    "@x402/fastify": "2.22.0",
+    "node": "v22.20.0"
+  }
+}

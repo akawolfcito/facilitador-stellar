@@ -10,6 +10,10 @@
 
 import { x402ResourceServer } from "@x402/core/server";
 import { HTTPFacilitatorClient } from "@x402/core/http";
+import {
+  declareDiscoveryExtension,
+  type DeclareQueryDiscoveryExtensionConfig,
+} from "@x402/extensions/bazaar";
 import { paymentMiddleware } from "@x402/fastify";
 import { ExactStellarScheme } from "@x402/stellar/exact/server";
 import Fastify, { type FastifyInstance } from "fastify";
@@ -36,6 +40,25 @@ export function buildSeller(config: SellerConfig): FastifyInstance {
   const server = new x402ResourceServer(new HTTPFacilitatorClient({ url: config.facilitatorUrl }));
   server.register(config.network, new ExactStellarScheme());
 
+  /**
+   * Discovery metadata, declared with the upstream helper.
+   *
+   * Per-parameter descriptions are the point, not decoration: RFP §3.2 asks for
+   * metadata that "makes an endpoint legible to an agent", and these strings are
+   * what a discovery index has to rank on.
+   */
+  const discoveryConfig: DeclareQueryDiscoveryExtensionConfig = {
+    method: "GET",
+    input: { city: "Medellin" },
+    inputSchema: {
+      properties: {
+        city: { type: "string", description: "City name to look up, for example Medellin" },
+      },
+      required: ["city"],
+    },
+    output: { example: { ok: true, message: "paid" } },
+  };
+
   paymentMiddleware(
     app,
     {
@@ -46,6 +69,11 @@ export function buildSeller(config: SellerConfig): FastifyInstance {
           network: config.network,
           price: { asset: config.asset, amount: config.amount },
         },
+        serviceName: "Paid Ping",
+        description: "Returns a fixed acknowledgement once a payment settles.",
+        tags: ["demo", "ping", "stellar"],
+        mimeType: "application/json",
+        extensions: declareDiscoveryExtension(discoveryConfig),
       },
     },
     server,

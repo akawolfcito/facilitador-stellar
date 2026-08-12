@@ -273,6 +273,144 @@ per-claim URLs, file paths, line numbers and the pinned upstream commit.
 
 ---
 
+## E-09 — A successful Stellar payment automatically catalogs a Bazaar resource
+
+**Claim.** A settled x402 payment carrying a valid Bazaar extension creates a
+persistent discovery listing with no registration step, and the listing survives
+a facilitator restart.
+
+**Command.** `pnpm --filter @stellar-bazaar/e2e-stellar e2e`
+
+| Field | Value |
+|---|---|
+| **transaction** | **`d833ca60f9f8fc22498cdb481c55a94909f061ae5c4d5f1bb1d0278c745afd5d`** |
+| ledger | 4097316, `successful: true`, source = our facilitator signer |
+| canonical resource | `http://127.0.0.1:4403/paid-ping` |
+| payTo | `GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR` |
+| network / scheme / asset | `stellar:testnet` / `exact` / `CDLZFC3S…CYSC` |
+| amount | `10000` |
+| catalogedAt | 2026-08-12T04:08:31Z |
+| **registration calls made** | **0** |
+| extension outcome | `{"bazaar":{"status":"success"}}` |
+| persisted across restart | yes |
+
+**Automatic, verifiably.** The seller declares metadata with
+`declareDiscoveryExtension` in its 402 and never calls a registration endpoint —
+none exists. The listing appears because `onAfterSettle` fired on a settlement
+the facilitator itself performed. `registrationCallsMade: 0` is recorded in the
+artifact.
+
+**Terms derive from the settled payment, not the metadata.** The stored `payTo`,
+`network`, `scheme`, `asset` and `amount` are copied from the
+`PaymentRequirements` the facilitator validated and Soroban enforced. Discovery
+metadata contributes only `serviceName` (`Paid Ping`), `description`, `tags`
+(`demo, ping, stellar`), `mimeType` and the input/output schemas.
+
+**Restart durability.** The facilitator is closed entirely — HTTP server and
+SQLite handle — and a new instance opened against the same file on a different
+port, so a pooled keep-alive socket cannot be mistaken for durability. The
+listing is still returned by `GET /discovery/resources`.
+
+**Filters over the persisted index.**
+`?type=http&payTo=…&extensions=bazaar&limit=10&offset=0` → 1 resource;
+`?type=mcp` → 0. Ordering is `firstSeenAt ASC, canonicalKey ASC` — total, so
+paging can neither skip nor repeat.
+
+**Upstream helpers used** (`@x402/extensions@2.22.0`, all reused, none
+reimplemented): `validateDiscoveryExtensionSpec`, `validateDiscoveryExtension`,
+`isValidRouteTemplate`, `extractDiscoveryInfo` (which internally applies
+`sanitizeResourceServiceMetadata` → `isValidServiceName`, `sanitizeTags`,
+`isValidIconUrl` and their SSRF defences), `declareDiscoveryExtension`, `BAZAAR`.
+
+**Artifact.** `artifacts/e2e/stellar-testnet-bazaar-catalog.json` — 15 stages,
+all PASS.
+
+**Status.** ✅ PASS 2026-08-12.
+
+---
+
+## E-10 — Invalid discovery metadata cannot corrupt payment settlement
+
+**Claim.** Discovery is soft-fail. A valid payment with unusable Bazaar metadata
+still settles; only the `EXTENSION-RESPONSES` header changes.
+
+**Structural reason, not just a test.** Cataloging runs in `onAfterSettle`, on a
+`SettleResponse` that is already final, and `catalogSettlement` never throws —
+every path returns an outcome, including a `try/catch` that converts an
+exploding store into `CATALOG_WRITE_FAILED`. There is no code path by which the
+catalog can alter a settlement result.
+
+**Covered by tests** (`packages/catalog/test/catalog.test.ts`,
+`apps/facilitator/test/discovery-endpoint.test.ts`):
+
+| Case | Result |
+|---|---|
+| malformed extension (`{info:{nope:true}}`) | `INVALID_SCHEMA`, nothing written |
+| `info` violating its own supplied `schema` | rejected, nothing written |
+| traversal `routeTemplate` `/../../etc/passwd` | `INVALID_ROUTE_TEMPLATE` |
+| percent-encoded traversal `/%2e%2e/…`, `/a/%2E%2E/b`, `/x/..%2Fy` | rejected |
+| scheme injection `/a/https://evil.example/b` | rejected |
+| store throws | `CATALOG_WRITE_FAILED`, no exception escapes |
+| `null`, `42`, `"string"`, `[]`, `{info:null}` as the extension | never throws |
+| over-long `serviceName` (33 chars) | dropped, listing kept |
+| loopback `iconUrl` | dropped, listing kept |
+| no bazaar extension | skipped, no header emitted |
+
+**Every rejection carries a reason.** The header is
+`{"bazaar":{"status":"rejected","rejectedReason":"CODE: sentence"}}` — greppable
+code plus the human-readable string the spec requires. A test asserts a non-null
+reason on every rejection path (RFP §3.3, §3.6).
+
+**Deliberate divergence from upstream, recorded.** Upstream soft-*drops* an
+invalid `routeTemplate` and falls back to the URL pathname; we soft-*reject* the
+listing. Re-keying a resource to a path the seller never declared is worse than
+not listing it. Our behaviour is strictly stricter, never more permissive.
+
+**Wire shape verified.** Success encodes to
+`eyJiYXphYXIiOnsic3RhdHVzIjoic3VjY2VzcyJ9fQ==`, byte-identical to the example in
+`specs/extensions/bazaar.md`, and the stock `HTTPFacilitatorClient` logs
+`[x402] extension responses: {"bazaar":{"status":"success"}}` when it reads it.
+
+**Status.** ✅ PASS 2026-08-12.
+
+---
+
+## E-11 — The catalog resists cross-seller overwrite, under a stated model
+
+**Claim.** A payment recipient other than the one bound at first settlement
+cannot create or update an existing canonical listing.
+
+**Model.** `docs/security/catalog-ownership-model.md`. The key is bound to the
+`payTo` from the validated `PaymentRequirements`; subsequent writes are accepted
+only from that same recipient, else `OWNERSHIP_CONFLICT`. The check and the write
+share one SQLite transaction, so two concurrent settlements for a new key cannot
+both observe "no owner".
+
+**Tested:** seller B registers, seller A attempts to overwrite → rejected, and
+B's `ownerPayTo`, `serviceName` and `lastSettlementTx` are all unchanged. Also
+not bypassable by respelling the URL: `SELLER-A.example` (case),
+`seller-a.example:443` (default port) and a trailing slash all normalise onto
+B's row and are rejected there — exactly one listing remains.
+
+**What we do NOT claim, and this is the point.** x402 proves **payment recipient
+authenticity** — value provably moved to `payTo`, enforced by a buyer-signed
+Soroban auth entry and the ledger. It proves **nothing about resource URL
+ownership**: `resource.url` travels through the client, which may lie, and the
+facilitator never contacts the URL. So the binding is trust-on-first-use, every
+listing is served with `ownershipBinding: "tofu"`, and a first-mover can squat
+an unregistered URL.
+
+The squat is bounded rather than fixed: catalog payment terms are advisory, and
+a conformant buyer pays against the 402 the live URL returns, so a squatter
+pollutes metadata rather than capturing revenue. The real fix — an origin-hosted
+`.well-known/x402` authorizing payTo addresses, fetched off the hot path with
+SSRF defences — is specified in §6 of the model document and is not implemented.
+
+**Status.** ✅ PASS 2026-08-12, with the limitation stated rather than papered
+over.
+
+---
+
 ## Open items
 
 | Id | Item | Blocking |
@@ -280,8 +418,8 @@ per-claim URLs, file paths, line numbers and the pinned upstream commit.
 | — | Same run against USDC instead of native XLM | before submission |
 | — | `stellar:pubnet` run | tranche 3 |
 | — | x402 `e2e/` suite green against our deployment | Aug 15 stop condition |
-| — | Persistent catalog + automatic cataloging via `onAfterSettle` | Aug 13 stop condition |
-| — | `/discovery/resources` + `/discovery/search` served from the index | Aug 13 |
+| — | `.well-known/x402` domain binding (closes the TOFU squat, E-11) | before mainnet |
+| — | `/discovery/search` with natural-language ranking | next |
 | — | MCP discovery server | Aug 15 |
 | — | Transitive licence audit | before submission |
 | — | `upto` Stellar design doc | tranche work |

@@ -6,3 +6,8 @@ dist/
 *.log
 .DS_Store
 .models-cache/
+
+# local catalog databases
+catalog.db*
+.catalog-e2e.db*
+apps/*/.catalog-e2e.db*

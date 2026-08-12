@@ -22,6 +22,11 @@ export interface FacilitatorConfig {
    * default because RFP §3.1 requires the buyer to need only the payment asset.
    */
   areFeesSponsored: boolean;
+  /**
+   * SQLite file backing the discovery catalog. `:memory:` makes the index
+   * non-durable and is only appropriate for tests.
+   */
+  catalogPath: string;
 }
 
 const DEFAULT_RPC_URL: Record<StellarNetwork, string> = {
@@ -79,6 +84,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): FacilitatorCon
     signerSecrets: parseSigners(env.SIGNER_SECRET_KEYS),
     rpcUrl: env.STELLAR_RPC_URL?.trim() || DEFAULT_RPC_URL[network],
     areFeesSponsored: (env.ARE_FEES_SPONSORED ?? "true") !== "false",
+    catalogPath: env.CATALOG_PATH?.trim() || "./catalog.db",
   };
 }
 

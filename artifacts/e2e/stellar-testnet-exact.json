@@ -3,12 +3,12 @@
   "network": "stellar:testnet",
   "scheme": "exact",
   "x402Version": 2,
-  "transactionHash": "6a8353024fc7bbcfc9bf0b5a060b02be7d7c9cc0f28f2295f4110cfd813faf83",
-  "horizonUrl": "https://horizon-testnet.stellar.org/transactions/6a8353024fc7bbcfc9bf0b5a060b02be7d7c9cc0f28f2295f4110cfd813faf83",
-  "explorerUrl": "https://stellar.expert/explorer/testnet/tx/6a8353024fc7bbcfc9bf0b5a060b02be7d7c9cc0f28f2295f4110cfd813faf83",
+  "transactionHash": "d833ca60f9f8fc22498cdb481c55a94909f061ae5c4d5f1bb1d0278c745afd5d",
+  "horizonUrl": "https://horizon-testnet.stellar.org/transactions/d833ca60f9f8fc22498cdb481c55a94909f061ae5c4d5f1bb1d0278c745afd5d",
+  "explorerUrl": "https://stellar.expert/explorer/testnet/tx/d833ca60f9f8fc22498cdb481c55a94909f061ae5c4d5f1bb1d0278c745afd5d",
   "onChain": {
     "successful": true,
-    "ledger": 4097028,
+    "ledger": 4097316,
     "sourceAccount": "GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X"
   },
   "valueTransfer": {
@@ -25,8 +25,8 @@
   "payTo": "GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR",
   "facilitatorSigner": "GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X",
   "resource": "GET /paid-ping",
-  "startedAt": "2026-08-12T03:44:21.249Z",
-  "settledAt": "2026-08-12T03:44:31.879Z",
+  "startedAt": "2026-08-12T04:08:23.649Z",
+  "settledAt": "2026-08-12T04:08:31.768Z",
   "stages": [
     {
       "stage": "facilitator/supported",
@@ -56,12 +56,12 @@
     {
       "stage": "settle",
       "status": "PASS",
-      "detail": "{\"success\":true,\"payer\":\"GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6\",\"transaction\":\"6a8353024fc7bbcfc9bf0b5a060b02be7d7c9cc0f28f2295f4110cfd813faf83\",\"network\":\"stellar:testnet\"}"
+      "detail": "{\"success\":true,\"payer\":\"GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6\",\"transaction\":\"d833ca60f9f8fc22498cdb481c55a94909f061ae5c4d5f1bb1d0278c745afd5d\",\"network\":\"stellar:testnet\"}"
     },
     {
       "stage": "on-chain (horizon)",
       "status": "PASS",
-      "detail": "ledger 4097028, source GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X"
+      "detail": "ledger 4097316, source GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X"
     },
     {
       "stage": "settled by us",
@@ -72,6 +72,36 @@
       "stage": "value moved",
       "status": "PASS",
       "detail": "0.0010000 GBA75K… → GDOEUT…"
+    },
+    {
+      "stage": "EXTENSION-RESPONSES",
+      "status": "PASS",
+      "detail": "{\"bazaar\":{\"status\":\"success\"}}"
+    },
+    {
+      "stage": "cataloged automatically",
+      "status": "PASS",
+      "detail": "1 listing(s)"
+    },
+    {
+      "stage": "terms from settled payment",
+      "status": "PASS",
+      "detail": "payTo=GDOEUTRI… amount=10000 binding=tofu"
+    },
+    {
+      "stage": "provenance links settlement",
+      "status": "PASS",
+      "detail": "d833ca60f9f8fc22…"
+    },
+    {
+      "stage": "persists across restart",
+      "status": "PASS",
+      "detail": "1 listing(s)"
+    },
+    {
+      "stage": "filters",
+      "status": "PASS",
+      "detail": "type+payTo+extensions → 1; type=mcp → 0"
     }
   ],
   "versions": {

@@ -13,7 +13,7 @@
  * allowed to pass.
  */
 
-import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { readFileSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { Horizon } from "@stellar/stellar-sdk";
 import { x402Client } from "@x402/core/client";
 import { decodePaymentResponseHeader, wrapFetchWithPayment } from "@x402/fetch";
@@ -50,7 +50,38 @@ interface Stage {
 const stages: Stage[] = [];
 function record(stage: string, status: Stage["status"], detail: string): void {
   stages.push({ stage, status, detail });
-  console.log(`  [${status === "PASS" ? "PASS" : "FAIL"}] ${stage.padEnd(22)} ${detail}`);
+  console.log(`  [${status === "PASS" ? "PASS" : "FAIL"}] ${stage.padEnd(26)} ${detail}`);
+}
+
+interface ExtensionResponses {
+  bazaar?: { status?: string; rejectedReason?: string };
+}
+let capturedExtensionResponses: ExtensionResponses | undefined;
+
+/**
+ * Observe the `EXTENSION-RESPONSES` header on the facilitator hop.
+ *
+ * The seller's `HTTPFacilitatorClient` calls the facilitator through global
+ * fetch, and both run in this process, so wrapping fetch is enough to see the
+ * header the spec puts on the settle response. This is harness instrumentation
+ * only — no production code path is altered.
+ */
+function observeFacilitatorHeaders(): void {
+  const original = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    const response = await original(input, init);
+    const header = response.headers.get("extension-responses");
+    if (header) {
+      try {
+        capturedExtensionResponses = JSON.parse(
+          Buffer.from(header, "base64").toString("utf8"),
+        ) as ExtensionResponses;
+      } catch {
+        capturedExtensionResponses = undefined;
+      }
+    }
+    return response;
+  };
 }
 
 async function main(): Promise<void> {
@@ -61,7 +92,14 @@ async function main(): Promise<void> {
   }
 
   const startedAt = new Date().toISOString();
-  console.log(`E-06 · stock x402 client → real ${NETWORK} settlement\n`);
+  console.log(`E-06/E-09 · stock x402 client → real ${NETWORK} settlement → auto-catalog\n`);
+
+  observeFacilitatorHeaders();
+
+  // A fresh catalog file per run, so "the listing is there" can only be caused
+  // by this run's payment.
+  const catalogPath = new URL("../.catalog-e2e.db", import.meta.url).pathname;
+  for (const suffix of ["", "-wal", "-shm"]) rmSync(`${catalogPath}${suffix}`, { force: true });
 
   // ---- our facilitator (payment plane) -----------------------------------
   const facilitatorConfig = loadConfig({
@@ -69,6 +107,7 @@ async function main(): Promise<void> {
     STELLAR_NETWORK: "testnet",
     SIGNER_SECRET_KEYS: env.E2E_FACILITATOR_SECRET,
     STELLAR_RPC_URL: env.STELLAR_RPC_URL,
+    CATALOG_PATH: catalogPath,
   });
   const { app: facilitatorApp } = buildFacilitator(facilitatorConfig);
   await facilitatorApp.listen({ port: FACILITATOR_PORT, host: "127.0.0.1" });
@@ -210,7 +249,80 @@ async function main(): Promise<void> {
     transfer ? `${transfer.amount} ${transfer.from.slice(0, 6)}… → ${transfer.to.slice(0, 6)}…` : "no transfer found",
   );
 
-  await Promise.all([sellerApp.close(), facilitatorApp.close()]);
+  // ---- 4. automatic Bazaar cataloging ------------------------------------
+  // No registration call was ever made. The listing exists because a payment
+  // for it settled (RFP §3.2).
+  //
+  // `EXTENSION-RESPONSES` is a facilitator→caller header: the spec puts it on
+  // the verify/settle response, and the caller here is the seller's
+  // `HTTPFacilitatorClient`, not the buyer. It is therefore observed on the
+  // facilitator hop (captured by `observeFacilitatorHeaders` below), not on the
+  // buyer's 200 — looking for it there was our own mistake, not a gap.
+  const extensionOutcome = capturedExtensionResponses;
+  record(
+    "EXTENSION-RESPONSES",
+    extensionOutcome?.bazaar?.status === "success" ? "PASS" : "FAIL",
+    JSON.stringify(extensionOutcome ?? "absent"),
+  );
+
+  const discovery = (await (
+    await fetch(`${facilitatorUrl}/discovery/resources?network=${NETWORK}`)
+  ).json()) as { resources: Array<Record<string, unknown>>; pagination: unknown };
+
+  const canonicalResource = `http://127.0.0.1:${SELLER_PORT}${PAID_PATH}`;
+  const listing = discovery.resources.find((r) => r.canonicalKey === canonicalResource);
+
+  record("cataloged automatically", listing ? "PASS" : "FAIL", `${discovery.resources.length} listing(s)`);
+  record(
+    "terms from settled payment",
+    listing?.payTo === env.E2E_SELLER_ADDRESS &&
+      listing?.asset === env.E2E_ASSET &&
+      listing?.amount === env.E2E_AMOUNT &&
+      listing?.ownerPayTo === env.E2E_SELLER_ADDRESS
+      ? "PASS"
+      : "FAIL",
+    `payTo=${String(listing?.payTo).slice(0, 8)}… amount=${String(listing?.amount)} binding=${String(listing?.ownershipBinding)}`,
+  );
+  record(
+    "provenance links settlement",
+    listing?.lastSettlementTx === transactionHash ? "PASS" : "FAIL",
+    String(listing?.lastSettlementTx).slice(0, 16) + "…",
+  );
+
+  // ---- 5. restart durability ----------------------------------------------
+  // Close the facilitator entirely — process state, SQLite handle and all —
+  // then open a new one against the same file. Nothing is replayed: the row has
+  // to already be on disk. The new instance binds a different port so that a
+  // pooled keep-alive socket to the dead server cannot be mistaken for
+  // durability (it produced an ECONNRESET the first time we tried same-port).
+  await facilitatorApp.close();
+  const restartedPort = FACILITATOR_PORT + 10;
+  const { app: restarted } = buildFacilitator({ ...facilitatorConfig, port: restartedPort });
+  await restarted.listen({ port: restartedPort, host: "127.0.0.1" });
+  const restartedUrl = `http://127.0.0.1:${restartedPort}`;
+
+  const afterRestart = (await (
+    await fetch(`${restartedUrl}/discovery/resources`)
+  ).json()) as { resources: Array<Record<string, unknown>> };
+  const survived = afterRestart.resources.find((r) => r.canonicalKey === canonicalResource);
+  record("persists across restart", survived ? "PASS" : "FAIL", `${afterRestart.resources.length} listing(s)`);
+
+  // ---- 6. filters over the persisted index ---------------------------------
+  const filtered = (await (
+    await fetch(
+      `${restartedUrl}/discovery/resources?type=http&payTo=${env.E2E_SELLER_ADDRESS}&extensions=bazaar&limit=10&offset=0`,
+    )
+  ).json()) as { resources: Array<Record<string, unknown>>; pagination: Record<string, number> };
+  const excluded = (await (
+    await fetch(`${restartedUrl}/discovery/resources?type=mcp`)
+  ).json()) as { resources: unknown[] };
+  record(
+    "filters",
+    filtered.resources.length > 0 && excluded.resources.length === 0 ? "PASS" : "FAIL",
+    `type+payTo+extensions → ${filtered.resources.length}; type=mcp → ${excluded.resources.length}`,
+  );
+
+  await Promise.all([sellerApp.close(), restarted.close()]);
 
   const failed = stages.filter((s) => s.status === "FAIL");
 
@@ -246,6 +358,35 @@ async function main(): Promise<void> {
   const out = new URL("../../../artifacts/e2e/stellar-testnet-exact.json", import.meta.url);
   mkdirSync(new URL(".", out), { recursive: true });
   writeFileSync(out, `${JSON.stringify(artifact, null, 2)}\n`);
+
+  const catalogArtifact = {
+    result: failed.length === 0 ? "PASS" : "FAIL",
+    transactionHash,
+    canonicalResource,
+    payTo: env.E2E_SELLER_ADDRESS,
+    network: NETWORK,
+    scheme: "exact",
+    asset: env.E2E_ASSET,
+    amount: env.E2E_AMOUNT,
+    catalogedAt: listing?.firstSeenAt,
+    automatic: true,
+    registrationCallsMade: 0,
+    ownership: {
+      ownerPayTo: listing?.ownerPayTo,
+      binding: listing?.ownershipBinding,
+      note: "trust on first use — x402 proves payment recipient authenticity, not URL ownership. See docs/security/catalog-ownership-model.md",
+    },
+    persistedAcrossRestart: Boolean(survived),
+    extensionOutcome,
+    discoveryResponse: { query: `network=${NETWORK}`, ...discovery },
+    filterCheck: { resources: filtered.resources.length, pagination: filtered.pagination },
+    versions: artifact.versions,
+  };
+  const catalogOut = new URL(
+    "../../../artifacts/e2e/stellar-testnet-bazaar-catalog.json",
+    import.meta.url,
+  );
+  writeFileSync(catalogOut, `${JSON.stringify(catalogArtifact, null, 2)}\n`);
 
   console.log(`\n  tx  ${transactionHash}`);
   console.log(`  ${artifact.explorerUrl}`);

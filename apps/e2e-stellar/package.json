@@ -16,6 +16,7 @@
     "@stellar-bazaar/facilitator": "workspace:*",
     "@stellar/stellar-sdk": "16.2.0",
     "@x402/core": "2.22.0",
+    "@x402/extensions": "2.22.0",
     "@x402/fastify": "2.22.0",
     "@x402/fetch": "2.22.0",
     "@x402/stellar": "2.22.0",
