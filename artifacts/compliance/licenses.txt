@@ -1,6 +1,6 @@
 Transitive licence audit
 ========================
-generated 2026-08-13T17:53:06.823Z
+generated 2026-08-13T18:22:41.730Z
 
 runtime workspaces : apps/facilitator, apps/mcp-discovery, packages/catalog, packages/search
 resolved packages  : 244
