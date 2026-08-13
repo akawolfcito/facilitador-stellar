@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.5.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm -r typecheck
+
+      - name: Unit and integration tests
+        run: pnpm -r test
+
+      # The gate that matters for RFP §3.6. A dependency update that introduces
+      # a forbidden or unclassifiable licence fails here, before merge, rather
+      # than being discovered during an audit months later.
+      #
+      # It also fails on `unknown` and on anything needing manual review, so a
+      # new licence string cannot slip through by being unfamiliar.
+      - name: Licence audit
+        run: pnpm audit:licenses
+
+      - name: Upload compliance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance
+          path: artifacts/compliance/
+          if-no-files-found: error

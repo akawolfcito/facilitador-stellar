@@ -939,14 +939,176 @@ item; nothing has been filed yet.
 
 ---
 
+## E-26 — The resolved runtime graph contains no forbidden copyleft
+
+**Claim, scoped precisely.** *The resolved production dependency graph of the
+workspaces we operate as a network service — `apps/facilitator`,
+`apps/mcp-discovery`, `packages/catalog`, `packages/search` — contains no
+AGPL, GPL, SSPL or other strong-copyleft dependency under the stated policy.*
+Not "all software everywhere is permissive".
+
+**Command.** `pnpm audit:licenses`
+**Artifacts.** `artifacts/compliance/licenses.json`, `licenses.txt`
+
+| | |
+|---|---|
+| resolved packages | 244 |
+| runtime packages | 238 |
+| tooling/dev-only | 6 |
+| forbidden | **0** |
+| unknown | **0** |
+| needing review | **0** |
+
+Runtime licence distribution: MIT 202, BSD-3-Clause 11, ISC 11, Apache-2.0 10,
+BSD-2-Clause 2, `(MIT OR CC0-1.0)` 1, Unlicense 1.
+
+**Method.** The graph comes from `pnpm list --prod --depth Infinity` per runtime
+workspace — the resolved tree, not the direct dependencies in `package.json`.
+Each licence is read from the package **as installed on disk**: the `license`
+field first, then the shipped `LICENSE` file, and only headers that are
+unmistakable are recognised. A dual licence passes only if one option is on the
+allow list, and any forbidden term anywhere in an SPDX expression fails, because
+we will not rely on an unstated election.
+
+The policy fails on `unknown` and on anything needing review, not just on
+forbidden. Silently normalising `SEE LICENSE IN LICENSE.md` into MIT is the
+exact mistake this exists to prevent.
+
+**Status.** ✅ PASS 2026-08-13.
+
+---
+
+## E-27 — The search and model runtime is permissively licensed, artifacts included
+
+**Claim.** The embedding stack — loader, native binaries and model artifacts —
+is permissive end to end.
+
+| Component | Licence | Evidence |
+|---|---|---|
+| `onnxruntime-node@1.24.3` | MIT | package metadata; repository `github.com/Microsoft/onnxruntime` |
+| `onnxruntime-common@1.24.3` | MIT | package metadata |
+| `@huggingface/tokenizers@0.1.3` | Apache-2.0 | packaged `LICENSE`; **zero dependencies of its own** |
+| `better-sqlite3@13.0.3` | MIT | package metadata |
+| model `Xenova/all-MiniLM-L6-v2` | Apache-2.0 | stated on the model repository, verified at source |
+
+Model artifacts, fetched at a pinned revision and hashed:
+
+```
+model.onnx             759c3cd2b7fe7e93933ad23c4c9181b7396442a2ed746ec7c1d46192c469c46e
+tokenizer.json         da0e79933b9ed51798a3ae27893d3c5fa4a201126cef75586296df9b4d2c62a0
+tokenizer_config.json  9261e7d79b44c8195c1cada2b453e55b00aeb81e907a6664974b4d7776172ab3
+```
+
+The licence claim is about the artifacts we actually download, not merely the JS
+wrapper. `Xenova/all-MiniLM-L6-v2` is an ONNX export of
+`sentence-transformers/all-MiniLM-L6-v2`; the export repository states
+`apache-2.0`.
+
+`onnxruntime-node` redistributes native binaries (`libonnxruntime.so.1`,
+`libonnxruntime.*.dylib`, `onnxruntime_binding.node`) for linux x64/arm64 and
+darwin arm64. The package ships no `LICENSE` file, so the MIT claim rests on its
+metadata and on ONNX Runtime's own repository rather than on a bundled file —
+recorded here rather than glossed over.
+
+### The finding that made this worth doing
+
+The first audit run **failed**. `@huggingface/transformers` depends on `sharp`,
+which ships prebuilt `@img/sharp-libvips-*` binaries under
+**LGPL-3.0-or-later** — 23 packages, one of them copyleft, pulled into the
+runtime path purely for image preprocessing we never invoke.
+
+LGPL is weak copyleft and libvips is dynamically linked (a 15.3MB `.dylib`), so
+a compliance argument exists. RFP §3.6 asks for better than an argument. We
+replaced the loader: `packages/search/src/embedder.ts` now drives the ONNX
+session directly through `onnxruntime-node` and `@huggingface/tokenizers`,
+removing `sharp` and every `@img/*` package.
+
+**The swap is behaviourally neutral, and that was verified rather than assumed.**
+Cosine similarities are byte-identical on a fixed probe (0.4862 / 0.0209), and
+the full benchmark is unchanged: held-out nDCG@10 stays at baseline 22.6%,
+BM25 83.0%, dense 95.3%, hybrid 93.5%. Every retrieval number in E-02, E-13 and
+E-14 still describes the shipped code.
+
+**Status.** ✅ PASS 2026-08-13.
+
+---
+
+## E-28 — No OpenZeppelin AGPL code in the dependency or deployment path
+
+**Claim.** No OpenZeppelin Relayer package, x402 plugin or relayer SDK appears
+anywhere in the resolved graph, runtime or tooling.
+
+RFP §3.6 and the RFP Appendix name these specifically: the Relayer, its x402
+plugin and the relayer SDK are AGPL-3.0-or-later and are "unusable code base to
+use or study", with AGPL's network clause applying to a service serving third
+parties.
+
+**Evidence.** `pnpm audit:licenses` scans every resolved package name for
+`openzeppelin` and `relayer` across both runtime and tooling graphs and fails
+the build on any match. Current result: `openzeppelin/relayer matches: none`,
+recorded in `artifacts/compliance/licenses.json` under `openzeppelinMatches: []`.
+Zero packages in the graph carry an AGPL or GPL licence string.
+
+**We also did not read it.** The RFP says the codebase is unusable to *use or
+study*; no OpenZeppelin source was consulted at any point in this work. Our
+facilitator is built on `@x402/stellar` (Apache-2.0) and patterns from
+`stellar/x402-stellar` (Apache-2.0).
+
+**Status.** ✅ PASS 2026-08-13.
+
+---
+
+## E-29 — Licence compliance is enforced continuously
+
+**Claim.** A dependency update that introduces a forbidden or unclassifiable
+licence fails CI before merge.
+
+`.github/workflows/ci.yml` runs typecheck, the full test suite and
+`pnpm audit:licenses` on every push to `main` and every pull request. The audit
+exits non-zero on a forbidden licence, an unknown licence, a package needing
+manual review, or any OpenZeppelin/relayer match. Compliance artifacts are
+uploaded on every run, including failures, so a reviewer can see what changed.
+
+The gate is deliberately noisy: a new licence string that the policy has never
+seen fails the build rather than being accepted because it looks harmless.
+
+**Status.** ✅ PASS 2026-08-13.
+
+---
+
+## Container and system scope
+
+We do not ship a Docker image yet. When we do, the base image and its OS
+packages will be recorded here; the RFP-relevant question is anything *we*
+bundle, and today that is the three model artifacts above plus the
+`onnxruntime-node` native binaries, both covered in E-27.
+
+---
+
 ## Open items
 
-| Id | Item | Blocking |
+Source of truth as of 2026-08-13. Everything not listed here is closed and has
+an E-number above.
+
+| Item | Status | Blocking |
 |---|---|---|
-| — | `stellar:pubnet` run | tranche 3 |
-| — | Hono+fetch residual ~25% harness failure: isolate process-lifecycle vs harness timing | not blocking; no upstream filing until reproducible outside the rig |
-| — | `.well-known/x402` domain binding (closes the TOFU squat, E-11) | before mainnet |
-| — | `/discovery/search` with natural-language ranking | next |
-| — | MCP discovery server | Aug 15 |
-| — | Transitive licence audit | before submission |
-| — | `upto` Stellar design doc | tranche work |
+| `stellar:pubnet` deployment and a mainnet settlement | not started | tranche 3; no mainnet funds moved to date |
+| `.well-known/x402` domain binding — closes the TOFU squat in E-11 | designed, not built | before mainnet |
+| `upto` Stellar scheme: design doc, then Soroban contract | not started | tranche work; spec PR #3098 is another team's |
+| Hono+fetch residual ~25% failure under the upstream harness | BOUNDED (E-20) | not blocking; no upstream filing until reproducible outside the rig |
+| Propose an MCP endpoint field to the Bazaar spec | not filed | discussion; workaround in place and conformant |
+| Docker image, base image and OS package licences | not built | before a hosted deployment |
+| Abstention threshold recalibrated on real query logs | not started | needs production traffic; today's 0.22 rests on 2 dev negatives |
+| Operational runbook and monitoring | not started | RFP §5 deliverable |
+| Role-based developer guide contributed to Stellar Developer Docs | not started | RFP §5 deliverable |
+| Third-party security review via the Audit Bank | not started | before the mainnet production tag |
+
+### Closed
+
+Retrieval benchmark and abstention calibration (E-01…E-04, E-14) · `/supported`
+conformance (E-05) · stock-client testnet settlement (E-06) · automatic Bazaar
+cataloging with ownership binding (E-09…E-11, E-16, E-17) · natural-language
+`/discovery/search` over the persistent catalog (E-12…E-15) · upstream x402 e2e
+suite 9/9 payments and 5/5 discovery in canonical testnet USDC, fee sponsorship
+proven on chain (E-18…E-21) · MCP discovery server, agent discovery → pay →
+invoke (E-22…E-25) · transitive licence audit and CI gate (E-26…E-29).

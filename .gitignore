@@ -25,3 +25,5 @@ e2e-harness/*/.models-cache/
 
 .catalog-mcp.db*
 apps/*/.catalog-mcp.db*
+
+packages/*/.models-cache/

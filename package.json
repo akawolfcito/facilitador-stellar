@@ -11,6 +11,10 @@
     "eval:retrieval": "pnpm --filter @stellar-bazaar/retrieval-eval eval",
     "typecheck": "pnpm -r typecheck",
     "eval:retrieval:integration": "pnpm --filter @stellar-bazaar/retrieval-eval eval:integration",
-    "calibrate": "pnpm --filter @stellar-bazaar/retrieval-eval calibrate"
+    "calibrate": "pnpm --filter @stellar-bazaar/retrieval-eval calibrate",
+    "audit:licenses": "tsx scripts/audit-licenses.mts"
+  },
+  "devDependencies": {
+    "tsx": "4.21.0"
   }
 }
