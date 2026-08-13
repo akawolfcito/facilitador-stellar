@@ -22,3 +22,6 @@ apps/*/.catalog-search.db*
 artifacts/e2e/hono-fetch-runs/
 artifacts/e2e/fastify-fetch-runs/
 e2e-harness/*/.models-cache/
+
+.catalog-mcp.db*
+apps/*/.catalog-mcp.db*

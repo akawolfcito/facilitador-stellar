@@ -1,0 +1,115 @@
+{
+  "result": "PASS",
+  "startedAt": "2026-08-13T17:08:22.284Z",
+  "finishedAt": "2026-08-13T17:13:39.920Z",
+  "mcpServerCommand": "pnpm --filter @stellar-bazaar/mcp-discovery start",
+  "toolsExposed": [
+    "bazaar_search",
+    "bazaar_pay_and_call"
+  ],
+  "searchQuery": "I need something that can condense a long passage of text",
+  "noPrebakedResourceUrl": true,
+  "discoveredTool": {
+    "resource": "mcp://127.0.0.1:4531/tool/summarize_text",
+    "type": "mcp",
+    "toolName": "summarize_text",
+    "serviceName": "Text Summarizer",
+    "description": "Summarize a block of text into a single short line.",
+    "network": "stellar:testnet",
+    "scheme": "exact",
+    "asset": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+    "amount": "10000",
+    "payTo": "GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR",
+    "ownershipBinding": "tofu",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "The text to summarize, as plain UTF-8"
+        }
+      },
+      "required": [
+        "text"
+      ]
+    }
+  },
+  "liveRequirementsRecheck": {
+    "staleTermsRejected": "PAYMENT_REQUIREMENTS_CHANGED",
+    "priceCeilingEnforced": "PRICE_EXCEEDS_LIMIT",
+    "unreachableResourceRejected": "INVALID_RESOURCE"
+  },
+  "payment": {
+    "transaction": "f92a6aeca76861010f90f7e36d11837e6a9463df40b4a0b9024b6a2c6c16ed4b",
+    "network": "stellar:testnet",
+    "scheme": "exact",
+    "asset": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+    "amount": "10000",
+    "payer": "GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6",
+    "payTo": "GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR"
+  },
+  "facilitatorSigner": "GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X",
+  "toolArguments": {
+    "text": "The Stellar Bazaar lets an autonomous agent find a paid service by describing what it needs, verify the price against the live offer, pay over Stellar, and invoke the service, without any pre-existing integration between the two parties."
+  },
+  "toolResult": {
+    "summary": "The Stellar Bazaar lets an autonomous agent find… (38 words)"
+  },
+  "timings": {
+    "totalMs": 8611.920958000002,
+    "settlementMs": 8597.761999999999
+  },
+  "seedTransaction": "530f07513fdebfdc05db9ced910157d0b5cdd48758ff9dacd7dc00127e675b8d",
+  "checks": [
+    {
+      "name": "tool cataloged by a real payment",
+      "status": "PASS",
+      "detail": "tx 530f07513fdebfdc…"
+    },
+    {
+      "name": "agent discovers the tool by intent",
+      "status": "PASS",
+      "detail": "Text Summarizer → mcp://127.0.0.1:4531/tool/summarize_text"
+    },
+    {
+      "name": "discovery carries what is needed to pay",
+      "status": "PASS",
+      "detail": "stellar:testnet 10000 CBIELTK6YB… schema=yes"
+    },
+    {
+      "name": "ownership binding is visible",
+      "status": "PASS",
+      "detail": "tofu"
+    },
+    {
+      "name": "stale listing terms are rejected",
+      "status": "PASS",
+      "detail": "PAYMENT_REQUIREMENTS_CHANGED"
+    },
+    {
+      "name": "price ceiling is enforced before signing",
+      "status": "PASS",
+      "detail": "PRICE_EXCEEDS_LIMIT"
+    },
+    {
+      "name": "authority-less mcp:// URL is refused",
+      "status": "PASS",
+      "detail": "INVALID_RESOURCE"
+    },
+    {
+      "name": "pay and invoke",
+      "status": "PASS",
+      "detail": "tx f92a6aeca7686101…"
+    },
+    {
+      "name": "paid in canonical testnet USDC",
+      "status": "PASS",
+      "detail": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+    },
+    {
+      "name": "tool result returned",
+      "status": "PASS",
+      "detail": "The Stellar Bazaar lets an autonomous agent find… (38 words)"
+    }
+  ]
+}

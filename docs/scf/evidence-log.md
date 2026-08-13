@@ -803,6 +803,142 @@ from unit-tested to observed end to end.
 
 ---
 
+## E-22 — An agent discovers an MCP tool through Bazaar with no pre-baked integration
+
+**Claim.** Given a sentence and nothing else, an agent finds a paid MCP tool it
+has never seen, and gets back everything needed to decide whether to pay.
+
+**Command.** `pnpm --filter @stellar-bazaar/e2e-stellar mcp`
+**Artifact.** `artifacts/e2e/mcp-discovery-pay-call.json`
+
+The agent is handed the query *"I need something that can condense a long
+passage of text"*. No URL, no tool name, no payment terms. `bazaar_search`
+returns:
+
+```
+Text Summarizer → mcp://127.0.0.1:4531/tool/summarize_text
+stellar:testnet · exact · 10000 · CBIELTK6…QDAMA · payTo GDOEUTRI…
+inputSchema present · ownershipBinding: tofu
+```
+
+The tool entered the catalog the only way anything can: a real settled payment
+(`530f07513fdebfdc…`). No direct insert.
+
+`ownershipBinding: tofu` is on every result. The party being asked to spend is
+told the binding is trust-on-first-use, not proof of URL control.
+
+**Status.** ✅ PASS 2026-08-13.
+
+---
+
+## E-23 — The agent pays and invokes the discovered tool on Stellar testnet
+
+**Claim.** Discovery → live 402 → Soroban auth entry → verify → settle → invoke
+→ result, end to end, in canonical testnet USDC.
+
+| | |
+|---|---|
+| **transaction** | **`f92a6aeca76861010f90f7e36d11837e6a9463df40b4a0b9024b6a2c6c16ed4b`** |
+| network / scheme | `stellar:testnet` / `exact` |
+| asset | `CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA` (USDC) |
+| amount | `10000` (0.0010000) |
+| payer | `GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6` |
+| payTo | `GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR` |
+| facilitator signer | `GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X` |
+| total latency | 8612 ms |
+| settlement latency | 8598 ms |
+
+Tool arguments: a 38-word passage. Tool result:
+`"The Stellar Bazaar lets an autonomous agent find… (38 words)"`.
+
+Explorer: https://stellar.expert/explorer/testnet/tx/f92a6aeca76861010f90f7e36d11837e6a9463df40b4a0b9024b6a2c6c16ed4b
+
+**No second stack.** `bazaar_search` is an adapter over `GET /discovery/search`
+— same hard filters, same dense ranking, same abstention threshold, same cursor
+semantics, because it is the same endpoint. `bazaar_pay_and_call` is an adapter
+over the stock `@x402/mcp` client with `autoPayment`; it builds no payload of
+its own. The MCP layer owns schemas, orchestration and error translation, and
+nothing else.
+
+**Status.** ✅ PASS 2026-08-13.
+
+---
+
+## E-24 — Live payment requirements override stale discovery metadata
+
+**Claim.** Catalog terms are advisory. The live 402 is the contract, and a
+disagreement stops the payment instead of silently proceeding.
+
+Before signing, `bazaar_pay_and_call` re-fetches requirements from the tool
+itself and compares network, scheme, asset, payTo and amount against what the
+caller discovered. Verified live in the same run:
+
+| Scenario | Result |
+|---|---|
+| discovered amount no longer matches the live offer | `PAYMENT_REQUIREMENTS_CHANGED`, nothing signed |
+| live price above the caller's `maxAmount` | `PRICE_EXCEEDS_LIMIT`, nothing signed |
+| resource is the spec's authority-less `mcp://tool/name` | `INVALID_RESOURCE`, no network contact |
+
+The ceiling is enforced twice: once in the pre-flight check, and again as a
+`policies` filter on the stock client, so a bug in the former cannot let the
+latter sign something dearer than allowed.
+
+**Status.** ✅ PASS 2026-08-13.
+
+---
+
+## E-25 — Deterministic, machine-readable failures
+
+**Claim.** Every rejection carries a code from a closed set plus a non-null
+sentence, and leaks nothing.
+
+Codes: `NO_MATCH`, `BELOW_RELEVANCE_THRESHOLD`, `INVALID_RESOURCE`,
+`PAYMENT_REQUIREMENTS_CHANGED`, `PRICE_EXCEEDS_LIMIT`, `UNSUPPORTED_NETWORK`,
+`UNSUPPORTED_ASSET`, `PAYMENT_FAILED`, `SETTLEMENT_FAILED`,
+`TOOL_INVOCATION_FAILED`, `DISCOVERY_UNAVAILABLE`.
+
+15 unit tests in `apps/mcp-discovery/test/tools.test.ts` cover search
+translation, abstention passthrough, catalog-down, non-200, asset filtering,
+filter/cursor forwarding, endpoint parsing and message redaction.
+
+**No atomicity is implied, because there is none.** x402 does not make
+settlement and invocation atomic. A payment can settle and the tool can then
+fail. When that happens the failure is `TOOL_INVOCATION_FAILED` and it carries a
+`paid` block with the transaction hash, amount, asset and network — the caller
+is told money moved, rather than left to infer it.
+
+**SSRF.** The adapter dials only a host taken from an `mcp://` URL. `http(s)://`,
+`file://` and malformed resources are refused with `INVALID_RESOURCE` before any
+connection, tested against a link-local metadata address among others.
+
+**Redaction.** `safeReason` drops any message containing a filesystem-ish path,
+credentials in a URL, or a long base32 run that could be a Stellar secret.
+Fixing a test failure here surfaced a real weakness: the original pattern
+anchored on a secret's exact 56-character length, so a token one character
+longer passed through. It now matches any long base32 run and errs toward
+dropping.
+
+**Status.** ✅ PASS 2026-08-13.
+
+---
+
+## Spec gap — Bazaar cannot express an MCP server's address
+
+`McpDiscoveryInfo.transport` is constrained to a transport *kind*
+(`"sse" | "streamable-http"`), and the spec's canonical resource identity is
+`mcp://tool/{toolName}` — which parses with host `tool` and carries no
+authority. **There is no field anywhere in the Bazaar extension for the endpoint
+an MCP server actually listens on**, so a discovered MCP tool can be identified
+but not reached, and discovery→invoke cannot be closed by a third party.
+
+Our workaround: sellers publish an authority in `resource.url`
+(`mcp://host:port/tool/name`). This keeps the spec's `(resource.url, toolName)`
+identity intact and is not a private extension — any facilitator reading the
+same URL reaches the same server. It is recorded here as an upstream discussion
+item; nothing has been filed yet.
+
+---
+
 ## Open items
 
 | Id | Item | Blocking |

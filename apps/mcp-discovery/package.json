@@ -1,0 +1,35 @@
+{
+  "name": "@stellar-bazaar/mcp-discovery",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "exports": {
+    "./tools": "./src/tools.ts",
+    "./errors": "./src/errors.ts",
+    "./server": "./src/server.ts"
+  },
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.15.1",
+    "@x402/core": "2.22.0",
+    "@x402/mcp": "2.22.0",
+    "@x402/stellar": "2.22.0",
+    "express": "4.21.2",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.0",
+    "@types/node": "22.13.4",
+    "tsx": "4.21.0",
+    "typescript": "5.7.3",
+    "vitest": "3.0.5"
+  }
+}
