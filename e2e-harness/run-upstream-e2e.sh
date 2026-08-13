@@ -54,7 +54,13 @@ if [[ ! -d "$WORK/.git" ]]; then
 fi
 git -C "$WORK" fetch --quiet origin
 git -C "$WORK" checkout --quiet "$COMMIT"
-echo "==> upstream x402 @ $(git -C "$WORK" rev-parse HEAD)"
+# `git checkout <sha>` carries local modifications across rather than discarding
+# them, so a previous `--asset native` rewrite of mechanisms_stellar.json would
+# silently persist into a run that did not ask for it. That happened: a run
+# reported 9/9 "USDC" while the chain showed XLM moving and zero USDC delta.
+# Restore tracked files explicitly.
+git -C "$WORK" checkout --quiet --force "$COMMIT" -- .
+echo "==> upstream x402 @ $(git -C "$WORK" rev-parse HEAD) (config restored)"
 
 # ---------------------------------------------------------------- adapter
 PROXY_DIR="$WORK/e2e/facilitators/external-proxies/stellar-bazaar"
@@ -164,12 +170,13 @@ OUT="$ROOT/artifacts/e2e/upstream-e2e-results.json"
 
 echo "==> running upstream suite: stellar / exact / bazaar, facilitator=stellar-bazaar"
 set +e
-(cd "$WORK/e2e" && STELLAR_BAZAAR_ROOT="$ROOT" pnpm exec tsx test.ts \
+(cd "$WORK/e2e" && STELLAR_BAZAAR_ROOT="$ROOT" TRACE_SETTLE="${TRACE_SETTLE:-}" pnpm exec tsx test.ts \
   --facilitators=stellar-bazaar \
   --families=stellar \
   --schemes=exact \
   --extensions=bazaar \
   --testnet \
+  ${SERVERS:+--servers=$SERVERS} \
   --output-json="$OUT" \
   $VERBOSE)
 STATUS=$?

@@ -1,8 +1,8 @@
 {
   "summary": {
     "total": 9,
-    "passed": 8,
-    "failed": 1,
+    "passed": 9,
+    "failed": 0,
     "networkMode": "testnet"
   },
   "results": [
@@ -14,7 +14,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "b7a8963ea2640453df774bcbefce962e6a6f04589b91ba21b2c30cd2d734aa65",
+      "transaction": "c99ef0cd1dc14a4566a3ffa1193e5ca3202e61341b1a1de97f857e9d2439c10c",
       "network": "stellar:testnet"
     },
     {
@@ -25,7 +25,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "ca982166ec41df40557c4a9bf3289648abe3cc5d1ee11b8fdd540707ffb985ca",
+      "transaction": "176212ceff76044485dd703acbea4aeedc5b85e29b404890543e6f2790192452",
       "network": "stellar:testnet"
     },
     {
@@ -36,7 +36,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "d2771211cbbb404bde23877f0f50b1a1696774e10c3a117904c7b57899c86107",
+      "transaction": "117b374785bf3bdfdd8ff7d5ac888771fd62ee5faf27372efb4f2e2fbffacc4d",
       "network": "stellar:testnet"
     },
     {
@@ -47,7 +47,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "99e2f7b7f41e64e40d5de706ea095662888b930395b008e2f4a1fd616586c89c",
+      "transaction": "8dea2302dae6b2d25b929107868e654a16f643ab8127d19accf898565efcdb40",
       "network": "stellar:testnet"
     },
     {
@@ -58,7 +58,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "939b12334f347e91f2d039307d16ade431cb997d6427f9d148d39fcc7b113259",
+      "transaction": "8558d67ec03f6f593f9921d181c74a610672cf4f32f21c7a6339b7ea585b775e",
       "network": "stellar:testnet"
     },
     {
@@ -68,8 +68,9 @@
       "endpoint": "/exact/stellar",
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
-      "passed": false,
-      "error": "<anonymous_script>:1\n\n\nSyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)\n    at successSteps (node:internal/deps/undici/undici:5719:27)\n    at fullyReadBody (node:internal/deps/undici/undici:4609:9)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async consumeBody (node:internal/deps/undici/undici:5728:7)\n    at async issueRequest (/Users/wolfcito/development/BLCKCHN/GOOD_WOLF_LABS/akawolfcito/facilitador-stellar/.x402-upstream/e2e/clients/typescript/http/fetch/index.ts:22:16)\n    at async runClientScenario (/Users/wolfcito/development/BLCKCHN/GOOD_WOLF_LABS/akawolfcito/facilitador-stellar/.x402-upstream/e2e/clients/typescript/client.ts:330:20)\n    at async <anonymous> (/Users/wolfcito/development/BLCKCHN/GOOD_WOLF_LABS/akawolfcito/facilitador-stellar/.x402-upstream/e2e/clients/typescript/http/fetch/index.ts:37:1)\n\nNode.js v22.20.0\n"
+      "passed": true,
+      "transaction": "e2d72fd61ee1e65d1a39bcaa280743b96744e7484018613e966145daa00ac0d3",
+      "network": "stellar:testnet"
     },
     {
       "testNumber": 7,
@@ -79,7 +80,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "54832b0c4f6a1dae0e4c176639d074a12cfb46e9d69dee3317fcda34502c7072",
+      "transaction": "f369e3fd7f18657e63a16c6bacaea77def9d46abff5cefb08df38345958b5cbf",
       "network": "stellar:testnet"
     },
     {
@@ -90,7 +91,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "b937d70cc369843f704b1087545c87c5a937af8ec58b68e42bac6bb4a9a566f0",
+      "transaction": "4dfff09dc8cf15ce82d5e6cae1a30e865e3bb02c9a7769507eff5ca3f747a6e2",
       "network": "stellar:testnet"
     },
     {
@@ -101,15 +102,15 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "9ba8c48a6aeced9156e3be2ae89f9f15d449929a6cf40d536de537753b850920",
+      "transaction": "46b6fb48390b9154478ccb97dbfb1bd85ac36b0d78824f9d63087b9734592a51",
       "network": "stellar:testnet"
     }
   ],
   "breakdowns": {
     "byFacilitator": {
       "stellar-bazaar": {
-        "passed": 8,
-        "failed": 1
+        "passed": 9,
+        "failed": 0
       }
     },
     "byServer": {
@@ -122,8 +123,8 @@
         "failed": 0
       },
       "typescript/http/hono": {
-        "passed": 1,
-        "failed": 1
+        "passed": 2,
+        "failed": 0
       },
       "typescript/http/next": {
         "passed": 2,
@@ -140,8 +141,8 @@
         "failed": 0
       },
       "typescript/http/fetch": {
-        "passed": 3,
-        "failed": 1
+        "passed": 4,
+        "failed": 0
       },
       "typescript/mcp": {
         "passed": 1,
@@ -150,8 +151,8 @@
     },
     "byProtocolFamily": {
       "stellar": {
-        "passed": 8,
-        "failed": 1
+        "passed": 9,
+        "failed": 0
       }
     }
   }

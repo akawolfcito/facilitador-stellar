@@ -81,19 +81,25 @@ export function catalogSettlement(
     }
 
     // 2. routeTemplate is client-controlled and becomes part of the canonical
-    //    key. Upstream soft-drops an invalid one and falls back to the URL
-    //    pathname; we reject the listing instead. Silently re-keying a resource
-    //    to a path the seller did not declare is a worse outcome than not
-    //    listing it — see docs/security/catalog-ownership-model.md §4.6. This
-    //    is a deliberate divergence from upstream's soft-drop, and it is
-    //    stricter, never more permissive.
+    //    key, so an invalid one must never be honoured. Upstream's
+    //    `isValidRouteTemplate` is the gate, and when it fails, upstream
+    //    soft-*drops* the field and keys the listing on the URL's own pathname.
+    //
+    //    We originally rejected the whole listing instead, reasoning that
+    //    re-keying to an undeclared path was worse than not listing. That was
+    //    wrong twice over. It is non-conformant — the upstream e2e suite's
+    //    discovery validation expects the resource to be cataloged, and the
+    //    Next server legitimately emits `routeTemplate: ":var1"` from its
+    //    catch-all route, which fails the leading-slash check. And the
+    //    reasoning was backwards: the fallback is the pathname the buyer
+    //    actually paid against, which is *more* trustworthy than a
+    //    client-supplied template, not less.
+    //
+    //    So: drop the bad template, keep the listing, and record that we did.
+    //    `extractDiscoveryInfo` performs the same drop internally.
     const declaredTemplate = (raw as Record<string, unknown>).routeTemplate;
-    if (declaredTemplate !== undefined && !isValidRouteTemplate(declaredTemplate as string)) {
-      return reject(
-        "INVALID_ROUTE_TEMPLATE",
-        "routeTemplate failed validation (must start with '/', no traversal or scheme injection after percent-decoding)",
-      );
-    }
+    const droppedRouteTemplate =
+      declaredTemplate !== undefined && !isValidRouteTemplate(declaredTemplate as string);
 
     // 3. Upstream extraction. Also applies service-metadata sanitisation.
     const discovered = extractDiscoveryInfo(paymentPayload, paymentRequirements);
@@ -156,7 +162,13 @@ export function catalogSettlement(
       metadataVersion: METADATA_VERSION,
     };
 
-    return store.upsert(listing);
+    const outcome = store.upsert(listing);
+    // Surface the dropped field so a seller can see their template was ignored
+    // without the listing silently disappearing.
+    if (droppedRouteTemplate && outcome.kind === "cataloged") {
+      return { ...outcome, droppedRouteTemplate: true };
+    }
+    return outcome;
   } catch (error) {
     // A dead database, a malformed URL that slipped through, anything: the
     // payment has already settled and stays settled.

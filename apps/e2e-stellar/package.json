@@ -12,7 +12,8 @@
     "e2e": "tsx src/run.ts",
     "typecheck": "tsc --noEmit",
     "search": "tsx src/search.ts",
-    "provision:usdc": "tsx src/provision-usdc.ts"
+    "provision:usdc": "tsx src/provision-usdc.ts",
+    "balances": "tsx src/balances.ts"
   },
   "dependencies": {
     "@stellar-bazaar/facilitator": "workspace:*",

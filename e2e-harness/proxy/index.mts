@@ -61,6 +61,34 @@ const config = loadConfig({
 const { app, signerAddresses } = buildFacilitator(config);
 
 /**
+ * Opt-in wire tracing, for diagnosing a scenario that settles but does not
+ * catalog. Off unless `TRACE_SETTLE=1`, and it only reads the request — no
+ * production code path changes.
+ */
+if (process.env.TRACE_SETTLE === "1") {
+  app.addHook("preHandler", async (request) => {
+    if (request.url !== "/settle") return;
+    const body = request.body as {
+      paymentPayload?: {
+        x402Version?: number;
+        resource?: Record<string, unknown>;
+        extensions?: Record<string, unknown>;
+      };
+    };
+    const payload = body?.paymentPayload;
+    console.log(
+      JSON.stringify({
+        event: "trace_settle",
+        x402Version: payload?.x402Version,
+        resource: payload?.resource,
+        extensionKeys: Object.keys(payload?.extensions ?? {}),
+        bazaar: payload?.extensions?.bazaar ?? null,
+      }),
+    );
+  });
+}
+
+/**
  * Graceful shutdown endpoint the harness calls between scenarios.
  *
  * It lives in the adapter rather than in `apps/facilitator`, so a production

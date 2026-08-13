@@ -1,0 +1,21 @@
+{
+  "label": "after-usdc",
+  "at": "2026-08-13T14:35:14.700Z",
+  "balances": {
+    "buyer": {
+      "address": "GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6",
+      "xlm": "9999.9539900",
+      "usdc": "20.0000000"
+    },
+    "seller": {
+      "address": "GDOEUTRI3CA534VATJBFTEFDOOAQR47UQBBLNRQ2IWAPLHV2OF433ULR",
+      "xlm": "10000.0459900",
+      "usdc": "0.0000000"
+    },
+    "facilitator": {
+      "address": "GABMU5BF3MJ6HAB5BIKKP27KADMWCNDWQPG7EEYX3HSIPU2YMHAKTL5X",
+      "xlm": "9999.9116178",
+      "usdc": "0"
+    }
+  }
+}

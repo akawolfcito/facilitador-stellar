@@ -600,114 +600,167 @@ in E-12.
 
 ---
 
-## E-18 — Upstream x402 e2e suite against our facilitator — PARTIAL
+## E-18 — Upstream x402 e2e suite against our facilitator — GREEN
 
-**Status.** ⚠️ **Not green.** 8 of 9 payment scenarios pass; Bazaar discovery
-validation reaches 4 of 5 endpoints. Two gaps remain, both identified precisely
-and neither hidden.
+**Claim.** The x402 repository's own e2e suite passes fully against our
+facilitator: 9/9 payment scenarios and 5/5 Bazaar discovery endpoints, exit
+status 0, with no client or protocol patches.
 
 **Command.**
 ```
 pnpm --filter @stellar-bazaar/e2e-stellar provision       # once
 pnpm --filter @stellar-bazaar/e2e-stellar provision:usdc  # trustlines
-e2e-harness/run-upstream-e2e.sh --asset native
+e2e-harness/run-upstream-e2e.sh
 ```
 
 | | |
 |---|---|
 | upstream commit | `c8247c4cd15f29498474404d94636e7dbb894e86` |
+| our commit | see this commit |
 | facilitator URL | `http://localhost:4027` (our adapter, spawned by the harness) |
 | network / scheme | `stellar:testnet` / `exact` |
-| Bazaar extension | enabled (`--extensions=bazaar`) |
+| asset | testnet USDC `CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA` |
+| Bazaar extension | enabled |
 | artifact | `artifacts/e2e/upstream-e2e-results.json` |
 
-**How our facilitator enters the suite.** Upstream discovers facilitators under
-`e2e/facilitators/external-proxies/`, a directory it gitignores for exactly this
-purpose (`e2e/facilitators/external-proxies/README.md`). Our adapter
-(`e2e-harness/proxy/`) maps harness env onto our config, adds a `/close`
-endpoint the rig calls between scenarios, and imports `buildFacilitator`
-unmodified. **No client or protocol package is patched.**
+**Per-server, per-client — all green.**
 
-**Payment results — 8/9.**
+| Server | axios | fetch | mcp |
+|---|:--:|:--:|:--:|
+| express | ✅ | ✅ | — |
+| fastify | ✅ | ✅ | — |
+| hono | ✅ | ✅ | — |
+| next | ✅ | ✅ | — |
+| mcp | — | — | ✅ |
 
-| Server | Client | Result |
-|---|---|---|
-| express | axios, fetch | ✅ ✅ |
-| fastify | axios, fetch | ✅ ✅ |
-| hono | axios | ✅ |
-| hono | fetch | ❌ `SyntaxError: Unexpected end of JSON input` |
-| next | axios, fetch | ✅ ✅ |
-| mcp | mcp | ✅ |
+`Discovery Validation: PASSED — Discovered 5/5`.
 
-The single failure is an empty response body on one combination; the same client
-passes against express, fastify and next, and the same server passes with axios.
-It has the shape of a flake, but it has been observed once and **is not yet
-proven to be one** — it needs repeat runs before anyone calls it transient.
+**How our facilitator enters the suite.** Through
+`e2e/facilitators/external-proxies/`, the directory upstream gitignores for
+exactly this purpose. The adapter (`e2e-harness/proxy/`) maps harness env onto
+our config, adds the `/close` endpoint the rig calls between scenarios, and
+imports `buildFacilitator` unmodified. **No client or protocol package is
+patched.** Configuration changes only: two throwaway credentials for protocol
+families this run does not test, and upstream's own build steps.
 
-**Discovery validation — 4/5.** Cataloged from real settlements during the run:
-`http://localhost:4022/exact/stellar`, `:4023`, `:4024`, and
-`mcp://tool/exact_stellar#tool=exact_stellar`. Missing:
-`GET http://localhost:4025/api/exact/stellar/withx402` (the Next `withX402`
-wrapper). Its two payment tests pass, so a settlement occurred and the listing
-did not. Root cause not yet established — unfinished, not explained away.
+---
 
-**Notable:** the MCP resource cataloged correctly under our
-`(resource.url, toolName)` key from a real payment, which upgrades E-17 from
-unit-tested to observed end to end.
+## E-19 — Canonical Stellar testnet USDC settlement
 
-### Failures found and fixed, classified before touching code
+**Claim.** All nine payments settled in canonical testnet USDC, fee-sponsored,
+submitted by our own signer.
 
-| # | Symptom | Class | Fix |
+**Nine transaction hashes**, one per payment case:
+```
+117b374785bf3bdfdd8ff7d5ac888771fd62ee5faf27372efb4f2e2fbffacc4d
+176212ceff76044485dd703acbea4aeedc5b85e29b404890543e6f2790192452
+46b6fb48390b9154478ccb97dbfb1bd85ac36b0d78824f9d63087b9734592a51
+4dfff09dc8cf15ce82d5e6cae1a30e865e3bb02c9a7769507eff5ca3f747a6e2
+8558d67ec03f6f593f9921d181c74a610672cf4f32f21c7a6339b7ea585b775e
+8dea2302dae6b2d25b929107868e654a16f643ab8127d19accf898565efcdb40
+c99ef0cd1dc14a4566a3ffa1193e5ca3202e61341b1a1de97f857e9d2439c10c
+e2d72fd61ee1e65d1a39bcaa280743b96744e7484018613e966145daa00ac0d3
+f369e3fd7f18657e63a16c6bacaea77def9d46abff5cefb08df38345958b5cbf
+```
+
+| | before | after | delta |
 |---|---|---|---|
-| 1 | `Missing required env: STELLAR_NETWORK` | CONFIG | `PORT`/`STELLAR_NETWORK` are injected at spawn but the pre-flight validator reads ambient env; moved them to `optional` |
-| 2 | `Top-level await not supported with "cjs"` | OUR BUG | adapter renamed `.ts` → `.mts`; tsx picks module format from the nearest `package.json` |
-| 3 | `Cannot find package '@stellar-bazaar/facilitator'` | OUR BUG | Node resolves imports from the file's location, not `--dir`; adapter became a workspace package |
-| 4 | `Cannot find module @x402/express/dist/cjs` | HARNESS ASSUMPTION | e2e links `../typescript/packages/*` via `workspace:*`; they must be built first |
-| 5 | `privateKeyToAccount(undefined)` | HARNESS ASSUMPTION | `createE2EClient()` builds EVM **and** SVM accounts unconditionally (`clients/typescript/client.ts:89-92`) before family filtering, so a Stellar-only run needs both credentials present |
-| 6 | `@solana/keys` rejects the key | OUR BUG | a constant-byte array is not a valid ed25519 keypair; generate a real one |
-| 7 | Next server won't start | HARNESS ASSUMPTION | `next start` needs `next build`; upstream's `setup.sh` does it, a bare install does not |
-| 8 | `Cannot read properties of undefined (reading 'length')` in discovery validation | **OUR BUG — wire format** | see below |
+| buyer `GBA75KBI…R7N6` USDC | 20.0000000 | 19.9910000 | **−0.0090000** |
+| buyer XLM | — | — | **+0.0000000** |
+| seller `GDOEUTRI…3ULR` USDC | 0.0000000 | 0.0090000 | **+0.0090000** |
+| facilitator `GABMU5BF…TL5X` XLM | — | — | **−0.0206757** |
 
-### The one that matters
+Nine payments × `0.0010000` USDC. **The buyer spent no XLM at all** — fee
+sponsorship (`extra.areFeesSponsored: true`) demonstrated on chain rather than
+asserted in a header. The facilitator signer paid every fee.
 
-Our `GET /discovery/resources` returned `{resources, pagination}`. The contract
-stock clients parse is `{x402Version, items, pagination}`
-(`@x402/extensions@2.22.0` `bazaar/facilitatorClient.ts:126-140`) — and note the
-asymmetry, search returns `resources` while list returns `items`. Each resource
-must also carry `resource`, `type`, `x402Version`, `accepts[]` and `lastUpdated`;
-we were emitting our storage column names.
+Artifacts: `artifacts/e2e/balances-before-green.json`,
+`artifacts/e2e/balances-after-green.json`.
 
-Settlement was correct throughout. The catalog was simply unreadable by any
-stock client — precisely the failure RFP §3.6 describes: *"correct settlement
-plus a non conformant wire format produces an unusable service"*. We had read
-the spec's prose, which documents the filters and not the envelope, and inferred
-the rest. **This is the concrete argument for why the RFP makes an upstream e2e
-run an acceptance criterion, and it is the single most valuable thing this run
-produced.** Fixed in `packages/catalog/src/wire.ts`.
+**Caught by measuring, not by trusting.** An earlier run of this same command
+reported 9/9 "USDC" — and the chain showed **zero USDC movement and 0.009 XLM
+moving instead**. `git checkout <sha>` carries local modifications across rather
+than discarding them, so a previous `--asset native` rewrite of
+`mechanisms_stellar.json` had silently persisted. Fixed with an explicit
+`git checkout --force <sha> -- .`. This is the second time balance verification
+caught a green run measuring the wrong thing (see E-06a); it is why every claim
+here cites deltas.
 
-### Asset caveat — read this before quoting any number above
+---
 
-The run uses `--asset native`, which rewrites the harness's Stellar route to
-price in the native XLM Stellar Asset Contract. **This is not a USDC conformance
-run.** The upstream default prices in USD, which resolves to testnet USDC
-`CBIELTK6…`, and the buyer holds none: the client's own simulation fails with
-`Error(Contract, #13): trustline entry is missing for account`.
+## E-20 — Framework interoperability
 
-USDC trustlines are now created for buyer and seller — real testnet transactions
-`7577e0e010b111ba…` and `c48f71d14a9ff561…` — but **testnet USDC is minted only
-by Circle's faucet, which is interactive**. Buyer balance is `0.0000000`.
-Unblocking needs a human at https://faucet.circle.com funding
-`GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6`.
+**Claim.** Express, Fastify, Hono, Next and MCP resource servers all settle and
+all catalog against our facilitator, with both stock HTTP clients.
 
-### Permanent assertion against settling elsewhere
+Evidence: the per-server table in E-18, all cells green, from a single run.
 
-`apps/facilitator/src/own-facilitator.ts` — `assertOwnFacilitator` rejects a
-missing URL or any known public-facilitator host; `assertSettledByUs` rejects a
-transaction whose on-chain source account is not one of our signers. The adapter
-calls the first at startup, so a conformance run pointed at
-`DEFAULT_FACILITATOR_URL` fails instead of passing. Ten tests, including one that
-pins the upstream default to `https://x402.org/facilitator` so a change there
-surfaces here, and one that reproduces the E-06a miscall.
+**Hono + fetch, measured rather than dismissed.** This combination failed once
+during an earlier run with `SyntaxError: Unexpected end of JSON input` — an
+empty response body. We declined to call it a flake and measured it in
+isolation (`e2e-harness/measure-hono-fetch.sh`): running *only* hono with *only*
+the fetch client, **8 of 13 observed runs failed (~62%)**. That is not a flake.
+
+Two facts constrain it. It fails only when fetch is the **first** client against
+a freshly started hono server — in the full suite axios runs first and both
+pass, which is why E-18 is green. And the empty body is on the final 200 after a
+settlement that already succeeded, so our facilitator had already returned valid
+settlement JSON to the seller before the seller's own response body went out
+empty.
+
+**Honest status:** the layer is **not proven**. The measurement run was cut
+short by a shell timeout and its logs were not preserved, so there is no
+captured `content-length` or connection-reuse observation to distinguish an
+upstream `@x402/hono` middleware cold-start race from a harness timing artefact.
+The hypothesis above is the best-supported reading of the evidence we have, not
+a diagnosis. Re-running the measurement to completion with response headers
+captured is the next step, and no upstream issue should be filed before that.
+
+---
+
+## E-21 — Bazaar discovery wire compatibility with stock clients
+
+**Claim.** `GET /discovery/resources` is readable by unmodified upstream
+tooling: the suite's own discovery validator parses our response and finds all
+five endpoints it expects.
+
+Two of our bugs stood between us and this, both found by the suite and neither
+findable by reading the spec prose.
+
+**1 — wrong envelope.** We returned `{resources, pagination}`. Stock clients
+parse `{x402Version, items, pagination}`, and the asymmetry is real: the list
+endpoint returns `items` while search returns `resources`
+(`@x402/extensions@2.22.0` `bazaar/facilitatorClient.ts:126-159`). Each resource
+also needs `resource`, `type`, `x402Version`, `accepts[]` and `lastUpdated`; we
+emitted storage column names. Fixed in `packages/catalog/src/wire.ts`.
+
+**2 — over-strict `routeTemplate` handling.** The Next server routes through a
+catch-all and emits `routeTemplate: ":var1"`, with no leading slash, which
+upstream's `isValidRouteTemplate` rejects. Upstream then soft-*drops* the field
+and keys the listing on the URL's own pathname. We rejected the entire listing —
+a deliberate divergence recorded in E-10, reasoning that re-keying to an
+undeclared path was worse than not listing.
+
+That reasoning was wrong in both directions. It was non-conformant: the suite's
+discovery validation expects the resource present, and we silently lost it (4/5)
+while every payment passed. And it was backwards on the merits: the fallback is
+the pathname the buyer *actually paid against*, which no client controls, making
+it strictly more trustworthy than an attacker-supplied template. We now match
+upstream — drop the template, keep the listing, and surface
+`droppedRouteTemplate` on the outcome so a seller can see their field was
+ignored.
+
+The security property is unchanged and still tested: a hostile template
+(`/../../etc/passwd`, `/%2e%2e/x`, `/a/https://evil.example/b`, `:var1`) is
+never stored and never moves the canonical key — all of them collapse onto the
+single URL that was paid for.
+
+**Regression test:** `packages/catalog/test/next-wire.test.ts` replays the exact
+wire shape captured from a live Next settlement (`TRACE_SETTLE=1`), verbatim.
+
+**MCP listing:** `mcp://tool/exact_stellar#tool=exact_stellar` was cataloged
+from a real payment under our `(resource.url, toolName)` key, upgrading E-17
+from unit-tested to observed end to end.
 
 ---
 
@@ -715,9 +768,8 @@ surfaces here, and one that reproduces the E-06a miscall.
 
 | Id | Item | Blocking |
 |---|---|---|
-| — | Same run against USDC instead of native XLM | before submission |
 | — | `stellar:pubnet` run | tranche 3 |
-| — | x402 `e2e/` suite green against our deployment | Aug 15 stop condition |
+| — | Re-measure hono+fetch to completion with response headers captured (E-20) | before filing anything upstream |
 | — | `.well-known/x402` domain binding (closes the TOFU squat, E-11) | before mainnet |
 | — | `/discovery/search` with natural-language ranking | next |
 | — | MCP discovery server | Aug 15 |

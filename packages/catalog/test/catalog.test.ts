@@ -134,25 +134,44 @@ describe("routeTemplate", () => {
     expect(outcome.listing.routeTemplate).toBe("/weather/:country/:city");
   });
 
-  it("soft-rejects a traversal template rather than silently re-keying the listing", () => {
-    const outcome = settle({ routeTemplate: "/../../etc/passwd" });
-    expect(outcome.kind).toBe("rejected");
-    if (outcome.kind !== "rejected") return;
-    expect(outcome.code).toBe("INVALID_ROUTE_TEMPLATE");
-    expect(store.list({}).resources).toHaveLength(0);
-  });
+  /**
+   * Upstream soft-drops an invalid template and keys on the URL pathname; so do
+   * we. Dropping is the safe direction — the fallback is the path the buyer
+   * actually paid against, which no client controls — and rejecting the listing
+   * instead is non-conformant (see test/next-wire.test.ts).
+   *
+   * What must hold in every case: the bad template is never stored and never
+   * moves the canonical key.
+   */
+  const HOSTILE_TEMPLATES = [
+    "/../../etc/passwd",
+    "/%2e%2e/%2e%2e/etc",
+    "/a/%2E%2E/b",
+    "/x/..%2Fy",
+    "/a/https://evil.example/b",
+    "not-absolute",
+    ":var1",
+  ];
 
-  it("rejects percent-encoded traversal, which upstream decodes before checking", () => {
-    for (const template of ["/%2e%2e/%2e%2e/etc", "/a/%2E%2E/b", "/x/..%2Fy"]) {
-      const outcome = settle({ routeTemplate: template });
-      expect(outcome.kind, template).toBe("rejected");
+  it("drops a hostile template but still catalogs the resource", () => {
+    for (const template of HOSTILE_TEMPLATES) {
+      const outcome = settle({ routeTemplate: template }, { tx: `tx-${template}` });
+      expect(outcome.kind, template).toBe("cataloged");
+      if (outcome.kind !== "cataloged") continue;
+      expect(outcome.droppedRouteTemplate, template).toBe(true);
+      expect(outcome.listing.routeTemplate, template).toBeUndefined();
     }
-    expect(store.list({}).resources).toHaveLength(0);
   });
 
-  it("rejects scheme injection", () => {
-    expect(settle({ routeTemplate: "/a/https://evil.example/b" }).kind).toBe("rejected");
-    expect(settle({ routeTemplate: "not-absolute" }).kind).toBe("rejected");
+  it("never lets a dropped template move the canonical key", () => {
+    for (const template of HOSTILE_TEMPLATES) {
+      settle({ routeTemplate: template }, { tx: `tx-${template}` });
+    }
+    // Every one of them collapses onto the URL actually paid for — one listing,
+    // not one per attempted template.
+    const page = store.list({});
+    expect(page.resources).toHaveLength(1);
+    expect(page.resources[0]!.canonicalKey).toBe("https://seller-a.example/weather");
   });
 });
 

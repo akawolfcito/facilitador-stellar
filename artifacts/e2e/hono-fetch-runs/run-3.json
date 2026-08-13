@@ -1,0 +1,47 @@
+{
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "networkMode": "testnet"
+  },
+  "results": [
+    {
+      "testNumber": 1,
+      "client": "typescript/http/fetch",
+      "server": "typescript/http/hono",
+      "endpoint": "/exact/stellar",
+      "facilitator": "stellar-bazaar",
+      "protocolFamily": "stellar",
+      "passed": true,
+      "transaction": "4fa3c757d66036ab0d8d338195ff64690c1f87c50f6d61cc169a9b5525e411bf",
+      "network": "stellar:testnet"
+    }
+  ],
+  "breakdowns": {
+    "byFacilitator": {
+      "stellar-bazaar": {
+        "passed": 1,
+        "failed": 0
+      }
+    },
+    "byServer": {
+      "typescript/http/hono": {
+        "passed": 1,
+        "failed": 0
+      }
+    },
+    "byClient": {
+      "typescript/http/fetch": {
+        "passed": 1,
+        "failed": 0
+      }
+    },
+    "byProtocolFamily": {
+      "stellar": {
+        "passed": 1,
+        "failed": 0
+      }
+    }
+  }
+}

@@ -93,7 +93,14 @@ export type BazaarStatus = "success" | "processing" | "rejected";
  * changed, but nothing was wrong either, so the wire status stays `success`.
  */
 export type CatalogOutcome =
-  | { kind: "cataloged"; status: "success"; listing: CatalogListing; created: boolean }
+  | {
+      kind: "cataloged";
+      status: "success";
+      listing: CatalogListing;
+      created: boolean;
+      /** True when a malformed `routeTemplate` was dropped, per upstream soft-drop. */
+      droppedRouteTemplate?: boolean;
+    }
   | { kind: "noop"; status: "success"; listing: CatalogListing }
   | { kind: "skipped"; status: null; reason: "no-bazaar-extension" }
   | { kind: "rejected"; status: "rejected"; code: CatalogRejectionCode; message: string };
