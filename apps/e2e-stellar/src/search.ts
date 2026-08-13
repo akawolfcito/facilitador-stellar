@@ -110,6 +110,10 @@ async function main(): Promise<void> {
     if (ok) settlements.push({ path: resource.path, transaction: settlement!.transaction! });
   }
 
+  // Index maintenance is now off the settle response path, so wait for the
+  // background sync to quiesce before querying search.
+  await built.searchSettled();
+
   const listed = (await (
     await fetch(`${facilitatorUrl}/discovery/resources?limit=50`)
   ).json()) as { resources: unknown[]; pagination: { total: number } };

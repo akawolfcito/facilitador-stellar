@@ -17,3 +17,8 @@ apps/*/.catalog-search.db*
 # upstream x402 clone for conformance runs
 .x402-upstream/
 .catalog-upstream-e2e.db*
+
+# reproducer scratch
+artifacts/e2e/hono-fetch-runs/
+artifacts/e2e/fastify-fetch-runs/
+e2e-harness/*/.models-cache/

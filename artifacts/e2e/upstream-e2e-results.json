@@ -14,7 +14,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "c99ef0cd1dc14a4566a3ffa1193e5ca3202e61341b1a1de97f857e9d2439c10c",
+      "transaction": "e9f8c440d999b812e51f0079aa907cc4e35612a455d63afd6c4cb28afb5dd235",
       "network": "stellar:testnet"
     },
     {
@@ -25,7 +25,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "176212ceff76044485dd703acbea4aeedc5b85e29b404890543e6f2790192452",
+      "transaction": "5edf8dde630ad3110b9737993a664660aa19840b35beb0a60ef38e2d453dde54",
       "network": "stellar:testnet"
     },
     {
@@ -36,7 +36,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "117b374785bf3bdfdd8ff7d5ac888771fd62ee5faf27372efb4f2e2fbffacc4d",
+      "transaction": "db8b084edcfe6479fdcbdd370372d1d2451763528f37c5a231a52e3000e8f0f3",
       "network": "stellar:testnet"
     },
     {
@@ -47,7 +47,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "8dea2302dae6b2d25b929107868e654a16f643ab8127d19accf898565efcdb40",
+      "transaction": "e84bf967d1d715807b1daadff2b34fa50ae6faf0bfa81b4cd830a544eee55f70",
       "network": "stellar:testnet"
     },
     {
@@ -58,7 +58,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "8558d67ec03f6f593f9921d181c74a610672cf4f32f21c7a6339b7ea585b775e",
+      "transaction": "971727903cf17d06ae6d426a61d8748b1590c63b5f3a94d9e1cd0a73bb763c6e",
       "network": "stellar:testnet"
     },
     {
@@ -69,7 +69,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "e2d72fd61ee1e65d1a39bcaa280743b96744e7484018613e966145daa00ac0d3",
+      "transaction": "fece53821689a7793cc9e21ba4f2a7b1970de930269e5312150c50ee1c7f547b",
       "network": "stellar:testnet"
     },
     {
@@ -80,7 +80,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "f369e3fd7f18657e63a16c6bacaea77def9d46abff5cefb08df38345958b5cbf",
+      "transaction": "b3ce7e4a19d0499be87304f9b01eb2565415a0bb743e9474ca1885a810ce8985",
       "network": "stellar:testnet"
     },
     {
@@ -91,7 +91,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "4dfff09dc8cf15ce82d5e6cae1a30e865e3bb02c9a7769507eff5ca3f747a6e2",
+      "transaction": "56543529e23a419b73b7b10c472e90f474b4a10c64dda2a388e2b76a49eaa3f2",
       "network": "stellar:testnet"
     },
     {
@@ -102,7 +102,7 @@
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
       "passed": true,
-      "transaction": "46b6fb48390b9154478ccb97dbfb1bd85ac36b0d78824f9d63087b9734592a51",
+      "transaction": "41f603e5362406b6d5e69cd9a919972da995010afc4acf7e0ebecbba95a946d8",
       "network": "stellar:testnet"
     }
   ],

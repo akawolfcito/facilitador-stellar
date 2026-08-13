@@ -1,0 +1,32 @@
+{
+  "name": "@stellar-bazaar/hono-repro",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": { "node": ">=22.0.0" },
+  "scripts": {
+    "repro": "tsx index.mts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "1.14.0",
+    "@stellar-bazaar/facilitator": "workspace:*",
+    "@x402/core": "2.22.0",
+    "@x402/express": "2.22.0",
+    "@x402/extensions": "2.22.0",
+    "@x402/fastify": "2.22.0",
+    "@x402/fetch": "2.22.0",
+    "@x402/hono": "2.22.0",
+    "@x402/stellar": "2.22.0",
+    "express": "4.21.2",
+    "fastify": "5.11.3",
+    "hono": "4.7.1"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.0",
+    "@types/node": "22.13.4",
+    "tsx": "4.21.0",
+    "typescript": "5.7.3"
+  }
+}

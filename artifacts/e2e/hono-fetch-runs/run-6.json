@@ -1,8 +1,8 @@
 {
   "summary": {
     "total": 1,
-    "passed": 0,
-    "failed": 1,
+    "passed": 1,
+    "failed": 0,
     "networkMode": "testnet"
   },
   "results": [
@@ -13,33 +13,34 @@
       "endpoint": "/exact/stellar",
       "facilitator": "stellar-bazaar",
       "protocolFamily": "stellar",
-      "passed": false,
-      "error": "<anonymous_script>:1\n\n\nSyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)\n    at successSteps (node:internal/deps/undici/undici:5719:27)\n    at fullyReadBody (node:internal/deps/undici/undici:4609:9)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async consumeBody (node:internal/deps/undici/undici:5728:7)\n    at async issueRequest (/Users/wolfcito/development/BLCKCHN/GOOD_WOLF_LABS/akawolfcito/facilitador-stellar/.x402-upstream/e2e/clients/typescript/http/fetch/index.ts:22:16)\n    at async runClientScenario (/Users/wolfcito/development/BLCKCHN/GOOD_WOLF_LABS/akawolfcito/facilitador-stellar/.x402-upstream/e2e/clients/typescript/client.ts:330:20)\n    at async <anonymous> (/Users/wolfcito/development/BLCKCHN/GOOD_WOLF_LABS/akawolfcito/facilitador-stellar/.x402-upstream/e2e/clients/typescript/http/fetch/index.ts:37:1)\n\nNode.js v22.20.0\n"
+      "passed": true,
+      "transaction": "d228116ff0e7b6a6d9c005dfd955bef9186150546db554e75e617d750bfac7fc",
+      "network": "stellar:testnet"
     }
   ],
   "breakdowns": {
     "byFacilitator": {
       "stellar-bazaar": {
-        "passed": 0,
-        "failed": 1
+        "passed": 1,
+        "failed": 0
       }
     },
     "byServer": {
       "typescript/http/hono": {
-        "passed": 0,
-        "failed": 1
+        "passed": 1,
+        "failed": 0
       }
     },
     "byClient": {
       "typescript/http/fetch": {
-        "passed": 0,
-        "failed": 1
+        "passed": 1,
+        "failed": 0
       }
     },
     "byProtocolFamily": {
       "stellar": {
-        "passed": 0,
-        "failed": 1
+        "passed": 1,
+        "failed": 0
       }
     }
   }

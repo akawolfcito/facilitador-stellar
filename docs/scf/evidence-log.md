@@ -688,35 +688,74 @@ here cites deltas.
 
 ---
 
-## E-20 — Framework interoperability
+## E-20 — Framework interoperability, and the Hono+fetch investigation
 
 **Claim.** Express, Fastify, Hono, Next and MCP resource servers all settle and
-all catalog against our facilitator, with both stock HTTP clients.
+all catalog against our facilitator, with both stock HTTP clients. Evidence: the
+per-server table in E-18, all cells green, from a single run.
 
-Evidence: the per-server table in E-18, all cells green, from a single run.
+### The Hono + fetch failure: BOUNDED, root cause UNKNOWN
 
-**Hono + fetch, measured rather than dismissed.** This combination failed once
-during an earlier run with `SyntaxError: Unexpected end of JSON input` — an
-empty response body. We declined to call it a flake and measured it in
-isolation (`e2e-harness/measure-hono-fetch.sh`): running *only* hono with *only*
-the fetch client, **8 of 13 observed runs failed (~62%)**. That is not a flake.
+It failed once during an earlier run with `SyntaxError: Unexpected end of JSON
+input` — an empty response body on the final 200, after a settlement that had
+already succeeded. We refused to call it a flake and measured it.
 
-Two facts constrain it. It fails only when fetch is the **first** client against
-a freshly started hono server — in the full suite axios runs first and both
-pass, which is why E-18 is green. And the empty body is on the final 200 after a
-settlement that already succeeded, so our facilitator had already returned valid
-settlement JSON to the seller before the seller's own response body went out
-empty.
+**Measurements**
 
-**Honest status:** the layer is **not proven**. The measurement run was cut
-short by a shell timeout and its logs were not preserved, so there is no
-captured `content-length` or connection-reuse observation to distinguish an
-upstream `@x402/hono` middleware cold-start race from a harness timing artefact.
-The hypothesis above is the best-supported reading of the evidence we have, not
-a diagnosis. Re-running the measurement to completion with response headers
-captured is the next step, and no upstream issue should be filed before that.
+| Configuration | Runs | Failures | Rate |
+|---|---:|---:|---:|
+| hono+fetch, upstream harness, cold model cache | 13 | 8 | **61.5%** |
+| hono+fetch, upstream harness, warm model cache | 10 | 2 | **20.0%** |
+| hono+fetch, upstream harness, after our fix below | 12 | 3 | **25.0%** |
+| **fastify+fetch, same harness / facilitator / client** | 8 | 0 | **0.0%** |
+| hono, in-process, stock `@x402/hono`, no warmup | 30 | 0 | 0.0% |
+| hono, in-process, upstream server shape, no startup delay | 20 | 0 | 0.0% |
+| hono, in-process, unpaid request first | 10 | 0 | 0.0% |
+| express / fastify, in-process | 20 | 0 | 0.0% |
 
----
+Reproducers: `e2e-harness/measure-hono-fetch.sh`,
+`e2e-harness/measure-fastify-fetch.sh`,
+`pnpm --filter @stellar-bazaar/hono-repro repro`.
+Raw observations (status, `content-length`, `transfer-encoding`, body byte
+length, settlement result, timings) in `artifacts/e2e/hono-fetch-repro.json`.
+
+**What the controls exclude.**
+
+- **Not our facilitator.** Fastify+fetch through the *same harness, same
+  facilitator process, same client* fails 0/8 while hono fails 3/12.
+- **Not the fetch client.** Same client, passes with fastify, express and next.
+- **Not `@x402/hono` middleware, hono, or `@hono/node-server`.** 60 in-process
+  runs with the stock middleware — including a byte-for-byte replica of the
+  upstream server's shape (`app.use("*", …)`, no startup delay, default
+  `syncFacilitatorOnStart`) — produced 60 non-empty 200s and zero failures.
+
+**What remains.** It reproduces only when hono runs as a **separate process
+under the upstream harness**. That leaves harness timing or process lifecycle,
+and we have not isolated which. Classification: **UNKNOWN AFTER CONTROLLED
+MEASUREMENT**, bounded by the controls above.
+
+**Nothing has been filed upstream, and nothing should be.** The failure is not
+reproducible independently of the harness, so there is no minimal reproducer
+that would let a maintainer act on it. Filing a 25%-flaky harness scenario with
+"we could not reproduce it outside your test rig" would waste their time.
+
+**Our own bug, found on the way and fixed.** `onAfterSettle` used to
+`await search.sync()`, putting embedding work — including a one-time ~90MB model
+download on a cold process — between a completed settlement and the seller's
+`/settle` response. The catalog write has already happened and the index is
+derived state, so the seller was waiting for nothing. It is now scheduled in the
+background and coalesced: at most one sync in flight, one more queued, never on
+the response path (`apps/facilitator/src/app.ts`, `scheduleSearchSync`).
+
+Reported honestly: **that fix did not change the failure rate** (20% before,
+25% after — indistinguishable at these sample sizes). The large drop from 61.5%
+to 20% came from the model cache being warm, not from the fix. The fix is
+correct on its own merits — settlement latency must not depend on index
+maintenance — and it removes that cost permanently, but it is not the
+explanation for the residual failures.
+
+**Impact on the deliverable: none.** The upstream suite is green end to end
+(E-18), re-verified after this change: 9/9 payments, 5/5 discovery, exit 0.
 
 ## E-21 — Bazaar discovery wire compatibility with stock clients
 
@@ -769,7 +808,7 @@ from unit-tested to observed end to end.
 | Id | Item | Blocking |
 |---|---|---|
 | — | `stellar:pubnet` run | tranche 3 |
-| — | Re-measure hono+fetch to completion with response headers captured (E-20) | before filing anything upstream |
+| — | Hono+fetch residual ~25% harness failure: isolate process-lifecycle vs harness timing | not blocking; no upstream filing until reproducible outside the rig |
 | — | `.well-known/x402` domain binding (closes the TOFU squat, E-11) | before mainnet |
 | — | `/discovery/search` with natural-language ranking | next |
 | — | MCP discovery server | Aug 15 |

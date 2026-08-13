@@ -44,6 +44,8 @@ export interface BuiltFacilitator {
   signerAddresses: string[];
   catalog: CatalogStore;
   search: SearchEngine;
+  /** Resolves when any in-flight background index sync has finished. */
+  searchSettled(): Promise<void>;
 }
 
 /**
@@ -107,6 +109,41 @@ export function buildFacilitator(
   const search = new SearchEngine(catalog);
 
   /**
+   * Background index maintenance, coalesced.
+   *
+   * At most one sync runs at a time; requests arriving during one set a flag so
+   * exactly one more runs afterwards. A burst of settlements therefore costs two
+   * syncs, not one per payment, and none of them delays a response.
+   *
+   * `syncSettled` lets tests await quiescence without exposing the scheduler.
+   */
+  let syncRunning = false;
+  let syncQueued = false;
+  let syncSettled: Promise<void> = Promise.resolve();
+
+  function scheduleSearchSync(): void {
+    if (syncRunning) {
+      syncQueued = true;
+      return;
+    }
+    syncRunning = true;
+    syncSettled = (async () => {
+      try {
+        do {
+          syncQueued = false;
+          await search.sync();
+        } while (syncQueued);
+      } catch (error) {
+        // A broken index degrades ranking. It must not affect settlement, which
+        // completed before this was scheduled.
+        console.error(JSON.stringify({ event: "search_sync_failed", error: String(error) }));
+      } finally {
+        syncRunning = false;
+      }
+    })();
+  }
+
+  /**
    * Automatic cataloging (RFP §3.2): a resource is listed because a payment for
    * it settled, with no separate registration step.
    *
@@ -125,17 +162,19 @@ export function buildFacilitator(
       const slot = catalogSlot.getStore();
       if (slot) slot.outcome = outcome;
 
-      // Bring the derived index up to date. Failure here degrades search
-      // ranking; it must never touch the settlement result, which is already
-      // final by this point.
+      // Bring the derived index up to date — off the response path.
+      //
+      // This used to `await search.sync()` here, which put embedding work
+      // (including a one-time ~90MB model load on a cold process) between a
+      // completed settlement and the seller's `/settle` response. The catalog
+      // write has already happened and the index is derived state, so making
+      // the seller wait for it buys nothing and costs latency on every payment.
+      //
+      // Measured: with a cold model cache the isolated hono+fetch scenario
+      // failed 8/13; with it warm, 2/10. Settlement latency was a contributing
+      // factor, and none of it belonged here.
       if (outcome.kind === "cataloged") {
-        try {
-          await search.sync();
-        } catch (error) {
-          console.error(
-            JSON.stringify({ event: "search_sync_failed", error: String(error) }),
-          );
-        }
+        scheduleSearchSync();
       }
     });
 
@@ -298,5 +337,6 @@ export function buildFacilitator(
     signerAddresses: signers.map((s) => s.address),
     catalog,
     search,
+    searchSettled: () => syncSettled,
   };
 }

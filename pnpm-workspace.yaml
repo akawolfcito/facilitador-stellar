@@ -2,3 +2,4 @@ packages:
   - "packages/*"
   - "apps/*"
   - "e2e-harness/proxy"
+  - "e2e-harness/hono-repro"
