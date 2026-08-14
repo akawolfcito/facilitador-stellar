@@ -27,7 +27,8 @@ pnpm eval:retrieval > /dev/null
 ## 0:00 — The gap (30s, no terminal)
 
 > Stellar already settles agent payments. `@x402/stellar` does `exact` on both
-> networks, and a settlement costs a fraction of a cent.
+> networks, and the facilitator can sponsor the network fee — in our run the
+> buyer's XLM balance changed by exactly zero.
 >
 > What an agent still cannot do is find what to pay for. And when the buyer is
 > software with a wallet, a bad search result isn't a wasted click — it's a

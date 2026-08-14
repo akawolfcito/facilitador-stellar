@@ -7,6 +7,12 @@ for this RFP and is looking for a reason to say no.
 Findings are marked **FIXED** (changed in the drafts), **ACCEPTED** (a real
 project risk that stays visible), or **OPEN** (unresolved before submission).
 
+> **Section numbering.** This pass was written against the draft in which
+> `proposal.md` ran §2–§20. That document has since been renumbered §1–§19, so a
+> proposal section cited below is one higher than its current number (`§7` here
+> is `§6` there). References of the form §3.1 / §3.6 are to the RFP and are
+> unaffected.
+
 ---
 
 ## 1. What sounds exaggerated?
@@ -121,10 +127,10 @@ What they would say, and our honest answer:
 | "They have no security review; we do." | **Yes.** | Audit Bank engagement is tranche 3. We have a written threat model produced *before* implementation, which is not the same thing. |
 | "They have no hosted deployment; ours is live." | **Yes.** | Tranche 1. Today we are reproducible, not hosted. |
 | "They have no upstream contributions." | **Yes.** | Stated in §18. Tranche-1 commitment. |
-| "Their benchmark is synthetic." | **Yes.** | Said first and loudest, by us. And nobody in this RFP has published *any* retrieval measurement — a synthetic benchmark with a stated method beats an unmeasured claim. |
+| "Their benchmark is synthetic." | **Yes.** | Said first and loudest, by us. Our response is a reproducible retrieval benchmark with a stated method, a held-out split and explicit threats to validity. |
 | "Anyone can wire `@x402/stellar` into an HTTP server." | **Yes, and we agree.** | Which is why the proposal does not claim the facilitator as the contribution. |
 
-**Where we are genuinely ahead:** measured retrieval with a held-out split and
+**Where our evidence is strongest:** measured retrieval with a held-out split and
 published threats to validity; a disconfirming negative result that changed what
 we shipped; a licence audit that failed and forced a dependency removal; and a
 green upstream e2e run including Bazaar discovery validation, which is the RFP's

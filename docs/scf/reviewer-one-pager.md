@@ -8,8 +8,8 @@ Full proposal: [`proposal.md`](./proposal.md) · Evidence: [`evidence-log.md`](.
 ## Problem
 
 Stellar can already settle agent payments. `@x402/stellar` does `exact` on both
-networks, a public facilitator runs it, and a settlement costs a fraction of a
-cent.
+networks, a public facilitator runs it, and network fees can be sponsored — in
+our nine-payment run the buyer's XLM balance changed by exactly zero (E-19).
 
 What an agent cannot do is reliably **find what to pay for**. The only
 server-side Bazaar search in the x402 monorepo matches the whole query as one

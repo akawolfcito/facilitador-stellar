@@ -8,12 +8,13 @@ Cross-checked against [`proposal-claim-matrix.md`](./proposal-claim-matrix.md).
 
 ---
 
-## 2. Executive summary
+## 1. Executive summary
 
 Payments are already machine-readable on Stellar. `@x402/stellar` settles
-`exact` on both networks, a public facilitator runs it, and a settlement costs a
-fraction of a cent. What an agent still cannot do is reliably **find** what to
-pay for. The only server-side Bazaar search in the x402 monorepo matches the
+`exact` on both networks and a public facilitator runs it; in our own
+nine-payment run the facilitator sponsored every network fee and the buyer's XLM
+balance changed by exactly zero (E-19). What an agent still cannot do is
+reliably **find** what to pay for. The only server-side Bazaar search in the x402 monorepo matches the
 whole query as one lowercase substring; on our benchmark it returns nothing at
 all for 36 of 52 answerable queries (E-01).
 
@@ -37,7 +38,7 @@ and real query logs instead of synthetic ones.
 
 ---
 
-## 3. Problem
+## 2. Problem
 
 **Settlement exists. Discovery does not.**
 
@@ -72,9 +73,10 @@ hand an agent an irrelevant paid service with no signal that it is irrelevant.
 That is why abstention is in this proposal at all (E-04, E-14).
 
 **Why Stellar specifically.** Two properties, both load-bearing rather than
-decorative. A settlement costs about 0.0023 XLM, which is what makes a
-per-request payment of 0.001 USDC economically coherent at all — on a chain
-where the fee exceeds the payment, none of this works. And Soroban's
+decorative. Settlement fees are small in absolute terms — our nine-payment run
+cost the facilitator 0.0206757 XLM in total, about 0.0023 XLM per settlement
+(E-19) — which is what makes per-request pricing worth attempting at all; on a
+chain where the fee dominates the payment, none of this works. And Soroban's
 authorization model lets the buyer sign an auth entry while the facilitator
 submits and pays: our nine-payment run moved USDC out of the buyer's account
 while its XLM balance changed by exactly zero (E-19). An agent needs only the
@@ -82,7 +84,7 @@ payment asset, and never has to hold gas.
 
 ---
 
-## 4. What is already built and proved
+## 3. What is already built and proved
 
 Everything in this table is done and reproducible today. Nothing here is
 roadmap.
@@ -105,11 +107,11 @@ roadmap.
 167 unit and integration tests, typecheck clean across the workspace.
 
 **Not done, and not claimed:** pubnet, `upto`, domain-verified listing
-ownership, a hosted deployment, a security review. See §19.
+ownership, a hosted deployment, a security review. See §18.
 
 ---
 
-## 5. Retrieval quality — the differentiating work
+## 4. Retrieval quality — the differentiating work
 
 The RFP calls search quality *"the hardest part of the scope and the part
 existing catalogs most often leave unimplemented"* and asks respondents to
@@ -123,7 +125,7 @@ three "translation" services one of which — *Token Translation Table* —
 resolves asset identifiers and performs no language translation; "price"
 spanning market data, FX, shipping quotes, customs duty and network fees.
 
-56 queries across seven categories, split **36 dev / 20 held-out**, with graded
+56 queries across seven categories, split **36 tuning / 20 held-out**, with graded
 relevance labels (0–3) **written against the corpus before any retriever
 existed**. Tuning touches `dev` only.
 
@@ -166,7 +168,7 @@ logic; `pnpm eval:retrieval:integration` measures persisted SQLite →
 
 ---
 
-## 6. Paid-agent safety
+## 5. Paid-agent safety
 
 Discovery for an agent with a wallet needs guarantees a human-facing search box
 does not.
@@ -196,7 +198,7 @@ filter on the stock client — so a bug in one cannot let the other overspend
 
 **Ownership disclosure.** Every listing carries `ownershipBinding: "tofu"`. x402
 proves who received a payment; it proves nothing about who controls a URL. We
-say so on every result rather than implying more (E-11, §11).
+say so on every result rather than implying more (E-11, §10).
 
 **No atomicity, because there is none.** A payment can settle and the tool can
 then fail. That returns `TOOL_INVOCATION_FAILED` **with a `paid` block carrying
@@ -205,7 +207,7 @@ the transaction hash**, so the caller knows money moved instead of inferring it
 
 ---
 
-## 7. Architecture
+## 6. Architecture
 
 ```
   AGENT PLANE            ours
@@ -231,7 +233,7 @@ the transaction hash**, so the caller knows money moved instead of inferring it
   │ /verify  /settle  /supported                │
   │ ExactStellarScheme  ← @x402/stellar         │
   │ validateAndExtract  ← @x402/extensions      │
-  │ channel-account pattern ← stellar/x402-stellar
+  │ channel-account pattern ← x402-stellar      │
   └───────────────────┬─────────────────────────┘
                       ▼
               Soroban / Stellar
@@ -255,7 +257,7 @@ is derived state, so a seller never waits for embedding work (E-27 commit).
 
 ---
 
-## 8. Interoperability
+## 7. Interoperability
 
 Upstream pinned at `c8247c4cd15f29498474404d94636e7dbb894e86`. Our facilitator
 enters the suite through `e2e/facilitators/external-proxies/`, the directory
@@ -306,7 +308,7 @@ time.
 
 ---
 
-## 9. Stellar payment evidence
+## 8. Stellar payment evidence
 
 All nine upstream e2e payments settled in canonical testnet USDC
 (`CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA`).
@@ -339,7 +341,7 @@ cites deltas and source accounts.
 
 ---
 
-## 10. The agent demo
+## 9. The agent demo
 
 The shortest complete statement of what this project is for.
 
@@ -349,7 +351,8 @@ payment terms**:
 > *"I need something that can condense a long passage of text"*
 
 1. `bazaar_search` → **Text Summarizer**, `mcp://127.0.0.1:4531/tool/summarize_text`,
-   `stellar:testnet` · `exact` · `10000` USDC · `payTo GDOEUTRI…` · input schema
+   `stellar:testnet` · `exact` · `10000` base units (0.0010000 USDC) ·
+   `payTo GDOEUTRI…` · input schema
    · `ownershipBinding: tofu`
 2. Live payment requirements re-fetched from the tool and compared with what was
    discovered
@@ -357,7 +360,7 @@ payment terms**:
    [`f92a6aeca76861010f90f7e36d11837e6a9463df40b4a0b9024b6a2c6c16ed4b`](https://stellar.expert/explorer/testnet/tx/f92a6aeca76861010f90f7e36d11837e6a9463df40b4a0b9024b6a2c6c16ed4b)
 4. Tool invoked → `"The Stellar Bazaar lets an autonomous agent find… (38 words)"`
 
-Total 8.6 s, of which 8.6 s is settlement. The tool had entered the catalog the
+Total 8.6 s, of which all but 14 ms is settlement. The tool had entered the catalog the
 only way anything can: by being paid for (E-22, E-23).
 
 In the same run, three refusals fired before any signature: a stale discovered
@@ -367,7 +370,7 @@ amount (`PAYMENT_REQUIREMENTS_CHANGED`), a price above the caller's ceiling
 
 ---
 
-## 11. Security model
+## 10. Security model
 
 Written up in full in `docs/security/catalog-ownership-model.md`, drafted
 **before** the implementation because the answer constrains the schema.
@@ -408,7 +411,7 @@ base32 run and errs toward dropping (E-25).
 
 ---
 
-## 12. Licensing and independence
+## 11. Licensing and independence
 
 RFP §3.6 requires a permissive OSI-approved licence with no strong copyleft
 anywhere in the dependency path, and names the OpenZeppelin Relayer, its x402
@@ -440,7 +443,7 @@ operating it.
 
 ---
 
-## 13. Spec and upstream findings
+## 12. Spec and upstream findings
 
 Kept separate from shipped functionality.
 
@@ -466,7 +469,7 @@ contribution is a tranche-1 commitment, not a past accomplishment.
 
 ---
 
-## 14. Milestones and tranches
+## 13. Milestones and tranches
 
 Mapped onto the RFP's own acceptance criteria and the award's
 MVP → Testnet → Mainnet tranche structure. The current implementation is
@@ -517,7 +520,7 @@ evidence of feasibility, not a claim that tranche work is done.
 
 ---
 
-## 15. Deliverables
+## 14. Deliverables
 
 Each is objectively testable.
 
@@ -554,7 +557,7 @@ Each is objectively testable.
 
 ---
 
-## 16. Success metrics
+## 15. Success metrics
 
 Targets are stated where we have a basis; where we do not, the metric is
 declared and the target is set after the first traffic rather than invented.
@@ -587,7 +590,7 @@ signal that retires the synthetic benchmark.
 
 ---
 
-## 17. Risks
+## 16. Risks
 
 | Risk | Impact | Mitigation | Resolved by |
 |---|---|---|---|
@@ -604,12 +607,12 @@ signal that retires the synthetic benchmark.
 
 ---
 
-## 18. Why this team
+## 17. Why this team
 
 Stated factually; no credentials are claimed beyond what this repository shows.
 
 - **We shipped a working implementation before writing the proposal.** Every
-  claim in §4 is reproducible from the repository today, with commands in §20.
+  claim in §3 is reproducible from the repository today, with commands in §19.
 - **We debug against stock upstream code.** The upstream e2e suite found two of
   our conformance bugs — a wrong discovery envelope and an over-strict
   `routeTemplate` policy — and both are fixed with regression tests replaying
@@ -633,7 +636,7 @@ commits to the latter.
 
 ---
 
-## 19. Open work before mainnet
+## 18. Open work before mainnet
 
 Nothing here is claimed as done. Source of truth: the Open items table in
 `evidence-log.md`.
@@ -643,7 +646,7 @@ Nothing here is claimed as done. Source of truth: the Open items table in
 | `stellar:pubnet` deployment and mainnet settlement | not started; no mainnet funds moved to date | 3 |
 | `.well-known/x402` domain binding | designed, not built | 3 |
 | `upto` Stellar design, Soroban contract, upstream contribution | not started | 2 |
-| Contract-account (`__check_auth`) settlement | untested; blocked on upstream PR #3018 | 1 |
+| Contract-account (`__check_auth`) settlement | RFP-REQUIRED; untested, gated by upstream PR #3018; upstream coordination is tranche-1 proposed work | 1 |
 | Hosted deployment, Docker image, base-image licence review | not built | 1 |
 | Abstention threshold recalibrated on real traffic | not started | 2 |
 | Operational runbook and monitoring | not started | 1 |
@@ -658,7 +661,7 @@ path to mainnet.
 
 ---
 
-## 20. Reproducibility
+## 19. Reproducibility
 
 ```bash
 nvm use                 # 22.20.0
