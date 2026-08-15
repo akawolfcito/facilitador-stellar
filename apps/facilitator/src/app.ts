@@ -39,6 +39,9 @@ import {
   classify,
   clientBucket,
 } from "./limits.js";
+import { Metrics, classifySettleError, readFeeCharged } from "./metrics.js";
+import { timingSafeEqual } from "node:crypto";
+import { rpc } from "@stellar/stellar-sdk";
 
 /** Body shared by `/verify` and `/settle`. */
 interface FacilitatorRequestBody {
@@ -73,6 +76,8 @@ export interface BuiltFacilitator {
    */
   initializeSearch(): Promise<{ ok: true; indexed: number } | { ok: false; error: string }>;
   discoveryStatus(): DiscoveryStatus;
+  /** Operational counters. Exposed for tests and the internal endpoint. */
+  metrics: Metrics;
 }
 
 export interface StartedFacilitator extends BuiltFacilitator {
@@ -195,6 +200,16 @@ export function buildFacilitator(
       const slot = catalogSlot.getStore();
       if (slot) slot.outcome = outcome;
 
+      if (outcome.kind === "rejected") {
+        metrics.catalogWritesFailed += 1;
+        metrics.reject(outcome.code === "OWNERSHIP_CONFLICT" ? "CATALOG_CONFLICT" : "UNKNOWN");
+        console.warn(
+          JSON.stringify({ event: "catalog_write_failed", reason: outcome.code }),
+        );
+      } else if (outcome.kind === "cataloged") {
+        metrics.catalogWritesSucceeded += 1;
+      }
+
       // Bring the derived index up to date — off the response path.
       //
       // This used to `await search.sync()` here, which put embedding work
@@ -231,13 +246,41 @@ export function buildFacilitator(
       indexedCount = stats.total;
       discoveryStatus = "ready";
       discoveryError = undefined;
+      metrics.searchSyncSucceeded += 1;
+      console.info(
+        JSON.stringify({ event: "search_sync_succeeded", indexed: stats.total }),
+      );
       return { ok: true, indexed: stats.total };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       discoveryStatus = "failed";
       discoveryError = message;
+      metrics.searchSyncFailed += 1;
+      console.error(JSON.stringify({ event: "search_sync_failed", error: message }));
       return { ok: false, error: message };
     }
+  }
+
+  // ---- observability ------------------------------------------------------
+  const metrics = new Metrics();
+
+  /**
+   * Sponsored-fee bookkeeping, off the response path.
+   *
+   * The settlement has already been answered by the time this runs — the same
+   * reason index maintenance moved off that path. A seller must not wait on our
+   * accounting, and a lookup failure must degrade the number's completeness,
+   * never the settlement.
+   */
+  function recordSponsoredFee(hash: string): void {
+    void (async () => {
+      const server = new rpc.Server(config.rpcUrl);
+      const stroops = await readFeeCharged(server, hash);
+      metrics.recordFee(stroops);
+      if (stroops === undefined) {
+        console.warn(JSON.stringify({ event: "fee_lookup_failed", transaction: hash }));
+      }
+    })();
   }
 
   // ---- public request controls -------------------------------------------
@@ -282,6 +325,8 @@ export function buildFacilitator(
     reply.header("X-RateLimit-Remaining", String(decision.remaining));
 
     if (!decision.allowed) {
+      metrics.count(`${route}.requests`);
+      metrics.reject("RATE_LIMIT");
       logRejection(request, `rate:${route}`, bucket);
       return reply
         .code(429)
@@ -316,7 +361,44 @@ export function buildFacilitator(
     rpcUrl: config.rpcUrl,
     signers: signers.length,
     catalog: catalog.list({ limit: 1 }).pagination.total,
+    settlements: { inFlight: settleInflight.inFlight },
   }));
+
+  /**
+   * `GET /internal/metrics` — operator view, off by default.
+   *
+   * Two switches, not one: `ENABLE_INTERNAL_METRICS` routes it at all, and
+   * `METRICS_TOKEN` authorises it. Turning on observability by accident should
+   * not be the same action as publishing it. Without both, the route does not
+   * exist — a 404 rather than a 401, so its presence is not discoverable.
+   *
+   * The payload is counters and timestamps. No payload material, no signatures,
+   * no addresses, no environment, no signer state.
+   */
+  if (config.enableInternalMetrics && config.metricsToken) {
+    const expected = Buffer.from(config.metricsToken);
+
+    app.get("/internal/metrics", async (request, reply) => {
+      const header = request.headers.authorization ?? "";
+      const presented = Buffer.from(header.startsWith("Bearer ") ? header.slice(7) : header);
+
+      // Compare in constant time, and only when lengths already match —
+      // timingSafeEqual throws on a length mismatch, which would itself leak.
+      const authorized =
+        presented.length === expected.length && timingSafeEqual(presented, expected);
+
+      if (!authorized) {
+        return reply.code(401).send({ error: "unauthorized" });
+      }
+
+      return metrics.snapshot({
+        catalogListings: catalog.list({ limit: 1 }).pagination.total,
+        searchStatus: discoveryStatus,
+        searchIndexed: indexedCount,
+        settlementsInFlight: settleInflight.inFlight,
+      });
+    });
+  }
 
   /**
    * RFP §3.6 makes this endpoint an acceptance criterion: it must emit the
@@ -327,19 +409,45 @@ export function buildFacilitator(
   app.get("/supported", async () => facilitator.getSupported());
 
   app.post<{ Body: FacilitatorRequestBody }>("/verify", async (request, reply) => {
+    metrics.count("verify.requests");
     const { paymentPayload, paymentRequirements } = request.body ?? {};
     if (!paymentPayload || !paymentRequirements) {
       // Every rejection carries a non-null reason (RFP §3.3, §3.6).
+      metrics.reject("INVALID_BODY");
+      console.warn(
+        JSON.stringify({ event: "verify_rejected", requestId: request.id, reason: "INVALID_BODY" }),
+      );
       return reply
         .code(400)
         .send({ isValid: false, invalidReason: "invalid_request_body", payer: null });
     }
-    return facilitator.verify(paymentPayload, paymentRequirements);
+
+    const result = await facilitator.verify(paymentPayload, paymentRequirements);
+    if (result.isValid) {
+      metrics.count("verify.valid");
+    } else {
+      metrics.count("verify.invalid");
+      metrics.reject("INVALID_PAYMENT");
+      console.warn(
+        JSON.stringify({
+          event: "verify_rejected",
+          requestId: request.id,
+          network: config.network,
+          reason: "INVALID_PAYMENT",
+        }),
+      );
+    }
+    return result;
   });
 
   app.post<{ Body: FacilitatorRequestBody }>("/settle", async (request, reply) => {
+    metrics.count("settle.requests");
     const { paymentPayload, paymentRequirements } = request.body ?? {};
     if (!paymentPayload || !paymentRequirements) {
+      metrics.reject("INVALID_BODY");
+      console.warn(
+        JSON.stringify({ event: "settle_rejected", requestId: request.id, reason: "INVALID_BODY" }),
+      );
       return reply
         .code(400)
         .send({ success: false, errorReason: "invalid_request_body", transaction: null });
@@ -350,6 +458,7 @@ export function buildFacilitator(
     // sequence number. 503 rather than 429 — the caller is not misbehaving,
     // the server is full — and the slot is released whichever way settle goes.
     if (!settleInflight.tryAcquire()) {
+      metrics.reject("SETTLE_CONCURRENCY_LIMIT");
       logRejection(request, "concurrency:settle", clientBucket(request.ip));
       return reply
         .code(503)
@@ -357,6 +466,16 @@ export function buildFacilitator(
         .send({ success: false, errorReason: "server_busy", transaction: null });
     }
 
+    console.info(
+      JSON.stringify({
+        event: "settle_started",
+        requestId: request.id,
+        network: config.network,
+        scheme: paymentRequirements.scheme,
+      }),
+    );
+
+    const startedAt = Date.now();
     const slot: { outcome?: CatalogOutcome } = {};
     let result;
     try {
@@ -365,6 +484,37 @@ export function buildFacilitator(
       );
     } finally {
       settleInflight.release();
+    }
+
+    const latencyMs = Date.now() - startedAt;
+    if (result.success && result.transaction) {
+      metrics.settlementsSucceeded += 1;
+      metrics.lastSettlementSuccessAt = new Date().toISOString();
+      console.info(
+        JSON.stringify({
+          event: "settle_succeeded",
+          requestId: request.id,
+          network: config.network,
+          transactionHash: result.transaction,
+          latencyMs,
+        }),
+      );
+      // Fee accounting happens after the answer, never inside it.
+      recordSponsoredFee(result.transaction);
+    } else {
+      metrics.submissionsFailed += 1;
+      metrics.lastSettlementFailureAt = new Date().toISOString();
+      const reason = classifySettleError(result.errorReason);
+      metrics.reject(reason);
+      console.warn(
+        JSON.stringify({
+          event: "settle_failed",
+          requestId: request.id,
+          network: config.network,
+          reason,
+          latencyMs,
+        }),
+      );
     }
 
     // Cataloging outcome rides the header; the settlement body is untouched
@@ -435,7 +585,10 @@ export function buildFacilitator(
     // An unbuilt index cannot answer, and must not pretend to. Abstention is a
     // finding — "nothing here is worth paying for" — and returning it here
     // would report a conclusion we never reached. 503 says the difference.
+    metrics.count("search.requests");
     if (discoveryStatus !== "ready") {
+      metrics.searchNotReady += 1;
+      metrics.reject("INDEX_NOT_READY");
       return reply.code(503).send({
         error: "discovery index unavailable",
         reason: "INDEX_NOT_READY",
@@ -477,6 +630,9 @@ export function buildFacilitator(
       return reply.code(400).send({ error: "cursor does not match this query and filter set" });
     }
 
+    // Abstention is an answer, not a failure, and is counted apart from both.
+    if (response.abstained) metrics.searchAbstentions += 1;
+
     return toDiscoverySearchResponse(
       response.resources,
       response.partialResults,
@@ -498,6 +654,7 @@ export function buildFacilitator(
     searchSettled: () => syncSettled,
     initializeSearch,
     discoveryStatus: () => discoveryStatus,
+    metrics,
   };
 }
 

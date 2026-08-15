@@ -61,6 +61,19 @@ export interface FacilitatorConfig {
   requestTimeoutMs?: number;
   /** Idle keep-alive socket timeout, in milliseconds. */
   keepAliveTimeoutMs?: number;
+
+  // ---- operations ----
+
+  /**
+   * Whether `GET /internal/metrics` is routed at all.
+   *
+   * Off unless `ENABLE_INTERNAL_METRICS=true` *and* `METRICS_TOKEN` is set. Two
+   * switches rather than one: enabling observability by accident should not be
+   * the same action as leaving it unauthenticated.
+   */
+  enableInternalMetrics?: boolean;
+  /** Bearer token for the internal metrics endpoint. Never logged. */
+  metricsToken?: string;
 }
 
 const DEFAULT_RPC_URL: Record<StellarNetwork, string> = {
@@ -120,10 +133,22 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): FacilitatorCon
     areFeesSponsored: (env.ARE_FEES_SPONSORED ?? "true") !== "false",
     catalogPath: env.CATALOG_PATH?.trim() || "./catalog.db",
     trustProxy: parseTrustProxy(env.TRUST_PROXY),
+    enableInternalMetrics: env.ENABLE_INTERNAL_METRICS === "true",
+    ...(env.METRICS_TOKEN?.trim() ? { metricsToken: env.METRICS_TOKEN.trim() } : {}),
   };
 }
 
-/** Configuration with secrets removed, safe to log. */
+/**
+ * Configuration with secrets removed, safe to log.
+ *
+ * Every secret-bearing field is replaced explicitly rather than filtered by
+ * name, so adding one to `FacilitatorConfig` without adding it here is a
+ * visible omission rather than a silent leak.
+ */
 export function redact(config: FacilitatorConfig): Record<string, unknown> {
-  return { ...config, signerSecrets: `${config.signerSecrets.length} signer(s)` };
+  return {
+    ...config,
+    signerSecrets: `${config.signerSecrets.length} signer(s)`,
+    ...(config.metricsToken ? { metricsToken: "set" } : {}),
+  };
 }
