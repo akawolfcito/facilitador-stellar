@@ -66,12 +66,17 @@ COPY packages/catalog ./packages/catalog
 COPY packages/search ./packages/search
 COPY apps/facilitator ./apps/facilitator
 
-# The volume, owned by the user that has to write to it. SQLite needs write
-# access to the directory as well as the file, for its journal.
-RUN mkdir -p /data && chown -R node:node /data /app
-USER node
+# SQLite needs write access to the directory as well as the file, for its
+# journal. This handles the unmounted case; the entrypoint handles the mounted
+# one, because a volume mount replaces whatever the build put here.
+RUN mkdir -p /data /home/node/.cache && chown -R node:node /data /app /home/node
+COPY apps/facilitator/docker-entrypoint.sh /usr/local/bin/entrypoint
+RUN chmod +x /usr/local/bin/entrypoint
 
+# Starts as root so the entrypoint can take ownership of the mounted volume,
+# then drops to `node` with exec — the process never keeps the privilege.
 WORKDIR /app/apps/facilitator
+ENTRYPOINT ["/usr/local/bin/entrypoint"]
 
 EXPOSE 4402
 
