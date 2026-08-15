@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-15T06:12:20.711Z",
+  "generatedAt": "2026-08-15T20:39:29.158Z",
   "policy": {
     "allowed": [
       "0BSD",
@@ -40,6 +40,7 @@
     "apps/facilitator",
     "apps/mcp-discovery",
     "apps/demo-seller",
+    "apps/demo-buyer",
     "packages/catalog",
     "packages/search"
   ],
@@ -51,15 +52,15 @@
   ],
   "totals": {
     "resolvedPackages": 244,
-    "runtimePackages": 239,
-    "toolingPackages": 5,
+    "runtimePackages": 240,
+    "toolingPackages": 4,
     "forbidden": 0,
     "unknown": 0,
     "review": 0
   },
   "runtimeLicenceCounts": {
     "MIT": 202,
-    "Apache-2.0": 11,
+    "Apache-2.0": 12,
     "BSD-3-Clause": 11,
     "ISC": 11,
     "BSD-2-Clause": 2,
@@ -95,7 +96,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6",
-        "apps/demo-seller › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6"
+        "apps/demo-seller › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6",
+        "apps/demo-buyer › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6"
       ]
     },
     {
@@ -120,7 +122,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › @fastify/fast-json-stringify-compiler@5.1.0",
-        "apps/demo-seller › fastify@5.11.3 › @fastify/fast-json-stringify-compiler@5.1.0"
+        "apps/demo-seller › fastify@5.11.3 › @fastify/fast-json-stringify-compiler@5.1.0",
+        "apps/demo-buyer › fastify@5.11.3 › @fastify/fast-json-stringify-compiler@5.1.0"
       ]
     },
     {
@@ -132,7 +135,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › @fastify/proxy-addr@5.1.0 › @fastify/forwarded@3.0.2",
-        "apps/demo-seller › fastify@5.11.3 › @fastify/proxy-addr@5.1.0 › @fastify/forwarded@3.0.2"
+        "apps/demo-seller › fastify@5.11.3 › @fastify/proxy-addr@5.1.0 › @fastify/forwarded@3.0.2",
+        "apps/demo-buyer › fastify@5.11.3 › @fastify/proxy-addr@5.1.0 › @fastify/forwarded@3.0.2"
       ]
     },
     {
@@ -144,7 +148,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › fast-json-stringify@7.0.1 › @fastify/merge-json-schemas@0.2.1",
-        "apps/demo-seller › fastify@5.11.3 › fast-json-stringify@7.0.1 › @fastify/merge-json-schemas@0.2.1"
+        "apps/demo-seller › fastify@5.11.3 › fast-json-stringify@7.0.1 › @fastify/merge-json-schemas@0.2.1",
+        "apps/demo-buyer › fastify@5.11.3 › fast-json-stringify@7.0.1 › @fastify/merge-json-schemas@0.2.1"
       ]
     },
     {
@@ -156,7 +161,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › @fastify/proxy-addr@5.1.0",
-        "apps/demo-seller › fastify@5.11.3 › @fastify/proxy-addr@5.1.0"
+        "apps/demo-seller › fastify@5.11.3 › @fastify/proxy-addr@5.1.0",
+        "apps/demo-buyer › fastify@5.11.3 › @fastify/proxy-addr@5.1.0"
       ]
     },
     {
@@ -282,7 +288,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › @pinojs/redact@0.4.0",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › @pinojs/redact@0.4.0"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › @pinojs/redact@0.4.0",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › @pinojs/redact@0.4.0"
       ]
     },
     {
@@ -429,10 +436,10 @@
       "version": "2.22.0",
       "license": "Apache-2.0",
       "licenseSource": "package.json",
-      "category": "tooling",
+      "category": "runtime",
       "verdict": "allowed",
       "paths": [
-        "apps/e2e-stellar › @x402/fetch@2.22.0"
+        "apps/demo-buyer › @x402/fetch@2.22.0"
       ]
     },
     {
@@ -492,7 +499,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › abstract-logging@2.0.1",
-        "apps/demo-seller › fastify@5.11.3 › abstract-logging@2.0.1"
+        "apps/demo-seller › fastify@5.11.3 › abstract-logging@2.0.1",
+        "apps/demo-buyer › fastify@5.11.3 › abstract-logging@2.0.1"
       ]
     },
     {
@@ -639,7 +647,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › avvio@9.3.0",
-        "apps/demo-seller › fastify@5.11.3 › avvio@9.3.0"
+        "apps/demo-seller › fastify@5.11.3 › avvio@9.3.0",
+        "apps/demo-buyer › fastify@5.11.3 › avvio@9.3.0"
       ]
     },
     {
@@ -691,7 +700,7 @@
       "paths": [
         "apps/facilitator › @stellar-bazaar/catalog@link:../../packages/catalog › better-sqlite3@13.0.3",
         "apps/demo-seller › @stellar-bazaar/facilitator@link:../facilitator › @stellar-bazaar/catalog@link:../../packages/catalog › better-sqlite3@13.0.3",
-        "packages/catalog › better-sqlite3@13.0.3"
+        "apps/demo-buyer › better-sqlite3@13.0.3"
       ]
     },
     {
@@ -887,7 +896,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › light-my-request@6.6.0 › cookie@1.1.1",
-        "apps/demo-seller › fastify@5.11.3 › light-my-request@6.6.0 › cookie@1.1.1"
+        "apps/demo-seller › fastify@5.11.3 › light-my-request@6.6.0 › cookie@1.1.1",
+        "apps/demo-buyer › fastify@5.11.3 › light-my-request@6.6.0 › cookie@1.1.1"
       ]
     },
     {
@@ -1295,7 +1305,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › find-my-way@9.7.0 › fast-querystring@1.1.2 › fast-decode-uri-component@1.0.1",
-        "apps/demo-seller › fastify@5.11.3 › find-my-way@9.7.0 › fast-querystring@1.1.2 › fast-decode-uri-component@1.0.1"
+        "apps/demo-seller › fastify@5.11.3 › find-my-way@9.7.0 › fast-querystring@1.1.2 › fast-decode-uri-component@1.0.1",
+        "apps/demo-buyer › fastify@5.11.3 › find-my-way@9.7.0 › fast-querystring@1.1.2 › fast-decode-uri-component@1.0.1"
       ]
     },
     {
@@ -1344,7 +1355,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › find-my-way@9.7.0 › fast-querystring@1.1.2",
-        "apps/demo-seller › fastify@5.11.3 › find-my-way@9.7.0 › fast-querystring@1.1.2"
+        "apps/demo-seller › fastify@5.11.3 › find-my-way@9.7.0 › fast-querystring@1.1.2",
+        "apps/demo-buyer › fastify@5.11.3 › find-my-way@9.7.0 › fast-querystring@1.1.2"
       ]
     },
     {
@@ -1357,7 +1369,7 @@
       "paths": [
         "apps/facilitator › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6 › ajv@8.20.0 › fast-uri@3.1.5",
         "apps/demo-seller › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6 › ajv@8.20.0 › fast-uri@3.1.5",
-        "packages/catalog › @x402/extensions@2.22.0 › ajv@8.20.0 › fast-uri@3.1.5"
+        "apps/demo-buyer › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6 › ajv@8.20.0 › fast-uri@3.1.5"
       ]
     },
     {
@@ -1382,7 +1394,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3",
-        "apps/demo-seller › fastify@5.11.3"
+        "apps/demo-seller › fastify@5.11.3",
+        "apps/demo-buyer › fastify@5.11.3"
       ]
     },
     {
@@ -1394,7 +1407,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › avvio@9.3.0 › fastq@1.20.1",
-        "apps/demo-seller › fastify@5.11.3 › avvio@9.3.0 › fastq@1.20.1"
+        "apps/demo-seller › fastify@5.11.3 › avvio@9.3.0 › fastq@1.20.1",
+        "apps/demo-buyer › fastify@5.11.3 › avvio@9.3.0 › fastq@1.20.1"
       ]
     },
     {
@@ -1441,7 +1455,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › find-my-way@9.7.0",
-        "apps/demo-seller › fastify@5.11.3 › find-my-way@9.7.0"
+        "apps/demo-seller › fastify@5.11.3 › find-my-way@9.7.0",
+        "apps/demo-buyer › fastify@5.11.3 › find-my-way@9.7.0"
       ]
     },
     {
@@ -1756,7 +1771,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › @fastify/proxy-addr@5.1.0 › ipaddr.js@2.5.0",
-        "apps/demo-seller › fastify@5.11.3 › @fastify/proxy-addr@5.1.0 › ipaddr.js@2.5.0"
+        "apps/demo-seller › fastify@5.11.3 › @fastify/proxy-addr@5.1.0 › ipaddr.js@2.5.0",
+        "apps/demo-buyer › fastify@5.11.3 › @fastify/proxy-addr@5.1.0 › ipaddr.js@2.5.0"
       ]
     },
     {
@@ -1829,7 +1845,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › fast-json-stringify@7.0.1 › json-schema-ref-resolver@3.0.0",
-        "apps/demo-seller › fastify@5.11.3 › fast-json-stringify@7.0.1 › json-schema-ref-resolver@3.0.0"
+        "apps/demo-seller › fastify@5.11.3 › fast-json-stringify@7.0.1 › json-schema-ref-resolver@3.0.0",
+        "apps/demo-buyer › fastify@5.11.3 › fast-json-stringify@7.0.1 › json-schema-ref-resolver@3.0.0"
       ]
     },
     {
@@ -1853,7 +1870,7 @@
       "paths": [
         "apps/facilitator › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6 › ajv@8.20.0 › json-schema-traverse@1.0.0",
         "apps/demo-seller › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6 › ajv@8.20.0 › json-schema-traverse@1.0.0",
-        "packages/catalog › @x402/extensions@2.22.0 › ajv@8.20.0 › json-schema-traverse@1.0.0"
+        "apps/demo-buyer › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6 › ajv@8.20.0 › json-schema-traverse@1.0.0"
       ]
     },
     {
@@ -1878,7 +1895,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › light-my-request@6.6.0",
-        "apps/demo-seller › fastify@5.11.3 › light-my-request@6.6.0"
+        "apps/demo-seller › fastify@5.11.3 › light-my-request@6.6.0",
+        "apps/demo-buyer › fastify@5.11.3 › light-my-request@6.6.0"
       ]
     },
     {
@@ -2079,7 +2097,7 @@
       "paths": [
         "apps/facilitator › @stellar-bazaar/catalog@link:../../packages/catalog › better-sqlite3@13.0.3 › node-addon-api@8.9.1",
         "apps/demo-seller › @stellar-bazaar/facilitator@link:../facilitator › @stellar-bazaar/catalog@link:../../packages/catalog › better-sqlite3@13.0.3 › node-addon-api@8.9.1",
-        "packages/catalog › better-sqlite3@13.0.3 › node-addon-api@8.9.1"
+        "apps/demo-buyer › better-sqlite3@13.0.3 › node-addon-api@8.9.1"
       ]
     },
     {
@@ -2128,7 +2146,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › on-exit-leak-free@2.1.2",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › on-exit-leak-free@2.1.2"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › on-exit-leak-free@2.1.2",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › on-exit-leak-free@2.1.2"
       ]
     },
     {
@@ -2249,7 +2268,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1"
       ]
     },
     {
@@ -2261,7 +2281,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › pino-abstract-transport@3.0.0",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › pino-abstract-transport@3.0.0"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › pino-abstract-transport@3.0.0",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › pino-abstract-transport@3.0.0"
       ]
     },
     {
@@ -2273,7 +2294,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › pino-std-serializers@7.1.0",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › pino-std-serializers@7.1.0"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › pino-std-serializers@7.1.0",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › pino-std-serializers@7.1.0"
       ]
     },
     {
@@ -2296,7 +2318,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › light-my-request@6.6.0 › process-warning@4.0.1",
-        "apps/demo-seller › fastify@5.11.3 › light-my-request@6.6.0 › process-warning@4.0.1"
+        "apps/demo-seller › fastify@5.11.3 › light-my-request@6.6.0 › process-warning@4.0.1",
+        "apps/demo-buyer › fastify@5.11.3 › light-my-request@6.6.0 › process-warning@4.0.1"
       ]
     },
     {
@@ -2381,7 +2404,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › quick-format-unescaped@4.0.4",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › quick-format-unescaped@4.0.4"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › quick-format-unescaped@4.0.4",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › quick-format-unescaped@4.0.4"
       ]
     },
     {
@@ -2429,7 +2453,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › real-require@0.2.0",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › real-require@0.2.0"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › real-require@0.2.0",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › real-require@0.2.0"
       ]
     },
     {
@@ -2441,7 +2466,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › thread-stream@4.2.0 › real-require@1.0.0",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › thread-stream@4.2.0 › real-require@1.0.0"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › thread-stream@4.2.0 › real-require@1.0.0",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › thread-stream@4.2.0 › real-require@1.0.0"
       ]
     },
     {
@@ -2454,7 +2480,7 @@
       "paths": [
         "apps/facilitator › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6 › ajv@8.20.0 › require-from-string@2.0.2",
         "apps/demo-seller › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6 › ajv@8.20.0 › require-from-string@2.0.2",
-        "packages/catalog › @x402/extensions@2.22.0 › ajv@8.20.0 › require-from-string@2.0.2"
+        "apps/demo-buyer › fastify@5.11.3 › @fastify/ajv-compiler@4.0.6 › ajv@8.20.0 › require-from-string@2.0.2"
       ]
     },
     {
@@ -2466,7 +2492,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › find-my-way@9.7.0 › safe-regex2@5.1.1 › ret@0.5.0",
-        "apps/demo-seller › fastify@5.11.3 › find-my-way@9.7.0 › safe-regex2@5.1.1 › ret@0.5.0"
+        "apps/demo-seller › fastify@5.11.3 › find-my-way@9.7.0 › safe-regex2@5.1.1 › ret@0.5.0",
+        "apps/demo-buyer › fastify@5.11.3 › find-my-way@9.7.0 › safe-regex2@5.1.1 › ret@0.5.0"
       ]
     },
     {
@@ -2478,7 +2505,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › avvio@9.3.0 › fastq@1.20.1 › reusify@1.1.0",
-        "apps/demo-seller › fastify@5.11.3 › avvio@9.3.0 › fastq@1.20.1 › reusify@1.1.0"
+        "apps/demo-seller › fastify@5.11.3 › avvio@9.3.0 › fastq@1.20.1 › reusify@1.1.0",
+        "apps/demo-buyer › fastify@5.11.3 › avvio@9.3.0 › fastq@1.20.1 › reusify@1.1.0"
       ]
     },
     {
@@ -2539,7 +2567,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › find-my-way@9.7.0 › safe-regex2@5.1.1",
-        "apps/demo-seller › fastify@5.11.3 › find-my-way@9.7.0 › safe-regex2@5.1.1"
+        "apps/demo-seller › fastify@5.11.3 › find-my-way@9.7.0 › safe-regex2@5.1.1",
+        "apps/demo-buyer › fastify@5.11.3 › find-my-way@9.7.0 › safe-regex2@5.1.1"
       ]
     },
     {
@@ -2551,7 +2580,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › safe-stable-stringify@2.5.0",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › safe-stable-stringify@2.5.0"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › safe-stable-stringify@2.5.0",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › safe-stable-stringify@2.5.0"
       ]
     },
     {
@@ -2575,7 +2605,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › secure-json-parse@4.1.0",
-        "apps/demo-seller › fastify@5.11.3 › secure-json-parse@4.1.0"
+        "apps/demo-seller › fastify@5.11.3 › secure-json-parse@4.1.0",
+        "apps/demo-buyer › fastify@5.11.3 › secure-json-parse@4.1.0"
       ]
     },
     {
@@ -2672,7 +2703,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › light-my-request@6.6.0 › set-cookie-parser@2.7.2",
-        "apps/demo-seller › fastify@5.11.3 › light-my-request@6.6.0 › set-cookie-parser@2.7.2"
+        "apps/demo-seller › fastify@5.11.3 › light-my-request@6.6.0 › set-cookie-parser@2.7.2",
+        "apps/demo-buyer › fastify@5.11.3 › light-my-request@6.6.0 › set-cookie-parser@2.7.2"
       ]
     },
     {
@@ -2778,7 +2810,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › sonic-boom@4.2.1",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › sonic-boom@4.2.1"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › sonic-boom@4.2.1",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › sonic-boom@4.2.1"
       ]
     },
     {
@@ -2790,7 +2823,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › pino-abstract-transport@3.0.0 › split2@4.2.0",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › pino-abstract-transport@3.0.0 › split2@4.2.0"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › pino-abstract-transport@3.0.0 › split2@4.2.0",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › pino-abstract-transport@3.0.0 › split2@4.2.0"
       ]
     },
     {
@@ -2841,7 +2875,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › pino@10.3.1 › thread-stream@4.2.0",
-        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › thread-stream@4.2.0"
+        "apps/demo-seller › fastify@5.11.3 › pino@10.3.1 › thread-stream@4.2.0",
+        "apps/demo-buyer › fastify@5.11.3 › pino@10.3.1 › thread-stream@4.2.0"
       ]
     },
     {
@@ -2853,7 +2888,8 @@
       "verdict": "allowed",
       "paths": [
         "apps/facilitator › fastify@5.11.3 › toad-cache@3.7.4",
-        "apps/demo-seller › fastify@5.11.3 › toad-cache@3.7.4"
+        "apps/demo-seller › fastify@5.11.3 › toad-cache@3.7.4",
+        "apps/demo-buyer › fastify@5.11.3 › toad-cache@3.7.4"
       ]
     },
     {

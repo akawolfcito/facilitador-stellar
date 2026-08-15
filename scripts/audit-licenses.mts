@@ -40,6 +40,9 @@ const RUNTIME_WORKSPACES = [
   // out, its dependencies would ship unexamined while the report still claimed
   // to cover what we run.
   "apps/demo-seller",
+  // The one service that holds a signing key. If anything belongs in the
+  // audited graph it is this.
+  "apps/demo-buyer",
   "packages/catalog",
   "packages/search",
 ];

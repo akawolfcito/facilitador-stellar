@@ -1,16 +1,16 @@
 Transitive licence audit
 ========================
-generated 2026-08-15T06:12:20.711Z
+generated 2026-08-15T20:39:29.158Z
 
-runtime workspaces : apps/facilitator, apps/mcp-discovery, apps/demo-seller, packages/catalog, packages/search
+runtime workspaces : apps/facilitator, apps/mcp-discovery, apps/demo-seller, apps/demo-buyer, packages/catalog, packages/search
 resolved packages  : 244
-runtime packages   : 239
-tooling packages   : 5
+runtime packages   : 240
+tooling packages   : 4
 
 runtime licences
 ----------------
    202  MIT
-    11  Apache-2.0
+    12  Apache-2.0
     11  BSD-3-Clause
     11  ISC
      2  BSD-2-Clause
@@ -47,6 +47,7 @@ runtime packages
   allowed   Apache-2.0               @x402/core@2.22.0
   allowed   Apache-2.0               @x402/extensions@2.22.0
   allowed   Apache-2.0               @x402/fastify@2.22.0
+  allowed   Apache-2.0               @x402/fetch@2.22.0
   allowed   Apache-2.0               @x402/mcp@2.22.0
   allowed   Apache-2.0               @x402/stellar@2.22.0
   allowed   MIT                      abitype@1.2.3
