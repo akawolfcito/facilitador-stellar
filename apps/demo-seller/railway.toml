@@ -1,0 +1,26 @@
+# Railway service: x402seek-demo-seller-testnet
+# Schema: https://railway.com/railway.schema.json  (draft-07)
+#
+# Set the service root directory to `apps/demo-seller`; the Dockerfile builds
+# from the repository root for the workspace packages.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/demo-seller/Dockerfile"
+watchPatterns = ["apps/demo-seller/**", "package.json", "pnpm-lock.yaml"]
+
+[deploy]
+# The seller has no index to build, so healthy and ready are the same question.
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+numReplicas = 1
+
+# Measured in a container: 268 MB, no model, no database, no volume.
+[deploy.limitOverride.containers]
+cpu = 1
+memoryBytes = 536870912
+
+# No volume, and no secret of any kind. A seller receives payment; it does not
+# authorise or submit one.

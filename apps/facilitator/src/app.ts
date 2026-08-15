@@ -365,6 +365,22 @@ export function buildFacilitator(
   }));
 
   /**
+   * `GET /ready` — readiness, as a status code.
+   *
+   * Separate from `/health` because a platform health check reads success or
+   * failure and nothing else. `/health` answers 200 whenever the process is up,
+   * which is what should keep a facilitator that is settling payments from
+   * being restarted; `/ready` answers 200 only when discovery can actually
+   * serve, so the two questions stay distinguishable to a machine.
+   */
+  app.get("/ready", async (_request, reply) => {
+    if (discoveryStatus !== "ready") {
+      return reply.code(503).send({ ready: false, discovery: discoveryStatus });
+    }
+    return { ready: true, discovery: discoveryStatus, indexed: indexedCount };
+  });
+
+  /**
    * `GET /internal/metrics` — operator view, off by default.
    *
    * Two switches, not one: `ENABLE_INTERNAL_METRICS` routes it at all, and

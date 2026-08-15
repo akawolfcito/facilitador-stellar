@@ -123,8 +123,33 @@ function parseSigners(raw: string | undefined): string[] {
 }
 
 /** Build and validate configuration from an environment-like record. */
+/**
+ * Refuse to boot on a network the deployment did not intend.
+ *
+ * `STELLAR_NETWORK` accepts `pubnet`, so a single mistyped or inherited value
+ * is the whole distance between a testnet preview and real money moving from a
+ * funded signer. This turns that into a second, independent statement: a
+ * deployment declares the network it is for, and a mismatch stops the process
+ * rather than being discovered on chain.
+ *
+ * Unset means unlocked, so nothing changes for local work or the harness.
+ */
+function assertNetworkLock(env: NodeJS.ProcessEnv, resolved: StellarNetwork): void {
+  const lock = env.DEPLOYMENT_NETWORK_LOCK?.trim();
+  if (!lock) return;
+
+  const expected = parseNetwork(lock);
+  if (expected !== resolved) {
+    throw new ConfigError(
+      `DEPLOYMENT_NETWORK_LOCK is "${lock}" but STELLAR_NETWORK resolved to "${resolved}". ` +
+        `Refusing to start: this deployment is not configured for that network.`,
+    );
+  }
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): FacilitatorConfig {
   const network = parseNetwork(env.STELLAR_NETWORK);
+  assertNetworkLock(env, network);
   return {
     port: parsePort(env.PORT),
     network,
