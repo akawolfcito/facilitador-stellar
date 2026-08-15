@@ -27,3 +27,7 @@ e2e-harness/*/.models-cache/
 apps/*/.catalog-mcp.db*
 
 packages/*/.models-cache/
+
+# Local scratch: reference material and drafts that are not part of the
+# submission. Listed so a careless `git add -A` cannot pull them in.
+private/
