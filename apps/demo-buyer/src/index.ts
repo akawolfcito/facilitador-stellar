@@ -10,7 +10,7 @@ import { Horizon } from "@stellar/stellar-sdk";
 import { createEd25519Signer } from "@x402/stellar";
 import { buildDemoBuyer } from "./app.js";
 import { loadDemoBuyerConfig, redact } from "./config.js";
-import { DEMO_ASSET } from "./invariants.js";
+
 import { SpendLedger } from "./ledger.js";
 import { payForDemo } from "./pay.js";
 
@@ -33,6 +33,17 @@ ledger.prune();
 const horizon = new Horizon.Server(config.horizonUrl);
 
 /**
+ * Canonical testnet USDC, in its classic form.
+ *
+ * The 402 quotes `CBIELTK6…`, the Stellar Asset Contract. The balance lives in
+ * the classic trustline behind it, keyed on issuer and code. Same asset, two
+ * representations, and reading the balance by the contract address finds
+ * nothing at all: the first version of this file did exactly that and reported
+ * zero for accounts that were holding USDC perfectly well.
+ */
+const USDC_CLASSIC_ISSUER = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
+
+/**
  * The buyer's own USDC balance, in base units.
  *
  * Read-only, and failure is not fatal: `null` means "could not tell", and the
@@ -44,11 +55,13 @@ async function buyerBalanceUnits(): Promise<bigint | null> {
   try {
     const account = await horizon.accounts().accountId(buyerAddress).call();
     const balance = account.balances.find(
-      (b) => (b as { contract_id?: string }).contract_id === DEMO_ASSET,
+      (b) =>
+        (b as { asset_code?: string }).asset_code === "USDC" &&
+        (b as { asset_issuer?: string }).asset_issuer === USDC_CLASSIC_ISSUER,
     ) as { balance?: string } | undefined;
-    // An account that exists with no USDC entry holds no USDC. That is zero,
-    // not unknown, and reporting it as unknown would let the floor wave through
-    // a buyer that cannot possibly pay.
+    // No trustline means no balance, and also means none can arrive. Zero, not
+    // unknown: reporting it as unknown would let the floor wave through a buyer
+    // that cannot possibly pay.
     if (!balance?.balance) return 0n;
     return BigInt(Math.round(Number(balance.balance) * 1e7));
   } catch {
