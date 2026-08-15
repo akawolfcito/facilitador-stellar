@@ -8,6 +8,7 @@
  */
 
 import { STELLAR_PUBNET_CAIP2, STELLAR_TESTNET_CAIP2 } from "@x402/stellar";
+import { parseTrustProxy, type RatePolicy } from "./limits.js";
 
 export type StellarNetwork = typeof STELLAR_TESTNET_CAIP2 | typeof STELLAR_PUBNET_CAIP2;
 
@@ -27,6 +28,39 @@ export interface FacilitatorConfig {
    * non-durable and is only appropriate for tests.
    */
   catalogPath: string;
+
+  // ---- public request controls (see limits.ts) ----
+
+  /**
+   * Whether to believe `X-Forwarded-For`, and for how many hops.
+   *
+   * `false` by default so an unproxied deployment cannot be told who its
+   * clients are. Set `TRUST_PROXY=1` on Railway. Optional: `buildFacilitator`
+   * applies the safe default.
+   */
+  trustProxy?: boolean | number;
+  /** Per-IP request budget by route class. Defaults to `DEFAULT_RATE_POLICY`. */
+  rateLimits?: RatePolicy;
+  /** Concurrent `/settle` submissions. Defaults to `DEFAULT_SETTLE_MAX_INFLIGHT`. */
+  settleMaxInflight?: number;
+  /**
+   * Largest request body accepted, in bytes. 64 KiB by default: an `exact`
+   * Stellar payload carries a base64 auth entry measured in kilobytes, so this
+   * is generous by an order of magnitude while still refusing anything absurd
+   * before a handler runs.
+   */
+  bodyLimitBytes?: number;
+  /**
+   * Time allowed to *receive* a request, in milliseconds.
+   *
+   * This bounds slow clients, not handlers. Settlement itself takes about 8.6 s
+   * end to end (E-23), almost all of it ledger close, and Fastify's
+   * `requestTimeout` does not apply to that — so a value tight enough to be
+   * useful against a slow-loris is still nowhere near the settlement path.
+   */
+  requestTimeoutMs?: number;
+  /** Idle keep-alive socket timeout, in milliseconds. */
+  keepAliveTimeoutMs?: number;
 }
 
 const DEFAULT_RPC_URL: Record<StellarNetwork, string> = {
@@ -85,6 +119,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): FacilitatorCon
     rpcUrl: env.STELLAR_RPC_URL?.trim() || DEFAULT_RPC_URL[network],
     areFeesSponsored: (env.ARE_FEES_SPONSORED ?? "true") !== "false",
     catalogPath: env.CATALOG_PATH?.trim() || "./catalog.db",
+    trustProxy: parseTrustProxy(env.TRUST_PROXY),
   };
 }
 

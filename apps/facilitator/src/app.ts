@@ -30,6 +30,15 @@ import { ExactStellarScheme } from "@x402/stellar/exact/facilitator";
 import { createEd25519Signer } from "@x402/stellar";
 import Fastify, { type FastifyInstance } from "fastify";
 import type { FacilitatorConfig } from "./config.js";
+import {
+  DEFAULT_RATE_POLICY,
+  DEFAULT_SETTLE_MAX_INFLIGHT,
+  InflightLimiter,
+  RateLimiter,
+  bucketFingerprint,
+  classify,
+  clientBucket,
+} from "./limits.js";
 
 /** Body shared by `/verify` and `/settle`. */
 interface FacilitatorRequestBody {
@@ -231,7 +240,60 @@ export function buildFacilitator(
     }
   }
 
-  const app = Fastify({ logger: false, genReqId: () => crypto.randomUUID() });
+  // ---- public request controls -------------------------------------------
+  const rateLimiter = new RateLimiter(config.rateLimits ?? DEFAULT_RATE_POLICY);
+  const settleInflight = new InflightLimiter(
+    config.settleMaxInflight ?? DEFAULT_SETTLE_MAX_INFLIGHT,
+  );
+
+  const app = Fastify({
+    logger: false,
+    genReqId: () => crypto.randomUUID(),
+    // Only believe forwarding headers when told to. See `parseTrustProxy`.
+    trustProxy: config.trustProxy ?? false,
+    // Rejected by Fastify before the body is parsed and long before a handler
+    // or a signer is reached.
+    bodyLimit: config.bodyLimitBytes ?? 64 * 1024,
+    requestTimeout: config.requestTimeoutMs ?? 15_000,
+    keepAliveTimeout: config.keepAliveTimeoutMs ?? 30_000,
+  });
+
+  /** Rejections carry the class and a fingerprint, never the address or the body. */
+  function logRejection(request: { id: string; url: string }, kind: string, bucket: string): void {
+    console.warn(
+      JSON.stringify({
+        event: "request_rejected",
+        kind,
+        route: request.url.split("?")[0],
+        requestId: request.id,
+        client: bucketFingerprint(bucket),
+      }),
+    );
+  }
+
+  app.addHook("onRequest", async (request, reply) => {
+    const route = classify(request.method, request.url);
+    if (route === "exempt") return;
+
+    const bucket = clientBucket(request.ip);
+    const decision = rateLimiter.check(bucket, route);
+
+    reply.header("X-RateLimit-Limit", String(decision.limit));
+    reply.header("X-RateLimit-Remaining", String(decision.remaining));
+
+    if (!decision.allowed) {
+      logRejection(request, `rate:${route}`, bucket);
+      return reply
+        .code(429)
+        .header("Retry-After", String(decision.retryAfter))
+        .send({
+          error: "too many requests",
+          reason: "RATE_LIMITED",
+          route,
+          retryAfter: decision.retryAfter,
+        });
+    }
+  });
 
   /**
    * Liveness and readiness in one document, kept distinct.
@@ -283,10 +345,27 @@ export function buildFacilitator(
         .send({ success: false, errorReason: "invalid_request_body", transaction: null });
     }
 
+    // Capacity, not rate: a slot bounds how much sponsored fee spend can be in
+    // flight at once and keeps simultaneous submissions off the same signer's
+    // sequence number. 503 rather than 429 — the caller is not misbehaving,
+    // the server is full — and the slot is released whichever way settle goes.
+    if (!settleInflight.tryAcquire()) {
+      logRejection(request, "concurrency:settle", clientBucket(request.ip));
+      return reply
+        .code(503)
+        .header("Retry-After", "1")
+        .send({ success: false, errorReason: "server_busy", transaction: null });
+    }
+
     const slot: { outcome?: CatalogOutcome } = {};
-    const result = await catalogSlot.run(slot, () =>
-      facilitator.settle(paymentPayload, paymentRequirements),
-    );
+    let result;
+    try {
+      result = await catalogSlot.run(slot, () =>
+        facilitator.settle(paymentPayload, paymentRequirements),
+      );
+    } finally {
+      settleInflight.release();
+    }
 
     // Cataloging outcome rides the header; the settlement body is untouched
     // whether the listing landed, was rejected, or the store was on fire.
