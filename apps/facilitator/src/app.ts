@@ -37,6 +37,15 @@ interface FacilitatorRequestBody {
   paymentRequirements?: PaymentRequirements;
 }
 
+/**
+ * Whether the derived index can answer a query yet.
+ *
+ * `initializing` and `failed` both mean the same thing to a caller — we have not
+ * looked — and that is deliberately not the same as abstaining, which means we
+ * looked and found nothing worth paying for.
+ */
+export type DiscoveryStatus = "initializing" | "ready" | "failed";
+
 export interface BuiltFacilitator {
   app: FastifyInstance;
   facilitator: x402Facilitator;
@@ -46,6 +55,21 @@ export interface BuiltFacilitator {
   search: SearchEngine;
   /** Resolves when any in-flight background index sync has finished. */
   searchSettled(): Promise<void>;
+  /**
+   * Rebuild the derived index from the persisted catalog.
+   *
+   * The catalog survives a restart; the vectors are cached alongside it but
+   * nothing loads them into the engine until this runs. Called once during
+   * boot — see `startFacilitator`.
+   */
+  initializeSearch(): Promise<{ ok: true; indexed: number } | { ok: false; error: string }>;
+  discoveryStatus(): DiscoveryStatus;
+}
+
+export interface StartedFacilitator extends BuiltFacilitator {
+  /** Address the server actually bound to, useful when the port was 0. */
+  address: string;
+  stop(): Promise<void>;
 }
 
 /**
@@ -178,10 +202,54 @@ export function buildFacilitator(
       }
     });
 
+  /**
+   * Readiness of the derived index.
+   *
+   * Starts `initializing`: the engine exists but holds no vectors, so every
+   * listing would score 0 and the abstention policy would refuse everything.
+   * Serving that as an abstention would be a lie, so discovery reports itself
+   * unavailable until `initializeSearch()` has run.
+   */
+  let discoveryStatus: DiscoveryStatus = "initializing";
+  let indexedCount = 0;
+  let discoveryError: string | undefined;
+
+  async function initializeSearch(): Promise<
+    { ok: true; indexed: number } | { ok: false; error: string }
+  > {
+    try {
+      const stats = await search.sync();
+      indexedCount = stats.total;
+      discoveryStatus = "ready";
+      discoveryError = undefined;
+      return { ok: true, indexed: stats.total };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      discoveryStatus = "failed";
+      discoveryError = message;
+      return { ok: false, error: message };
+    }
+  }
+
   const app = Fastify({ logger: false, genReqId: () => crypto.randomUUID() });
 
+  /**
+   * Liveness and readiness in one document, kept distinct.
+   *
+   * `status` is liveness: the process is up and the payment plane is serving.
+   * `ready` is readiness for *discovery* only, and it is false until the index
+   * has been built. A failed index must not report the process as unhealthy —
+   * settlement does not depend on it, and restarting a working facilitator
+   * because a derived index could not load would be the worse outcome.
+   */
   app.get("/health", async () => ({
     status: "ok",
+    ready: discoveryStatus === "ready",
+    discovery: {
+      status: discoveryStatus,
+      indexed: indexedCount,
+      ...(discoveryError ? { error: discoveryError } : {}),
+    },
     network: config.network,
     rpcUrl: config.rpcUrl,
     signers: signers.length,
@@ -285,6 +353,17 @@ export function buildFacilitator(
    * to answer rather than recommend a paid service it does not believe in.
    */
   app.get("/discovery/search", async (request, reply) => {
+    // An unbuilt index cannot answer, and must not pretend to. Abstention is a
+    // finding — "nothing here is worth paying for" — and returning it here
+    // would report a conclusion we never reached. 503 says the difference.
+    if (discoveryStatus !== "ready") {
+      return reply.code(503).send({
+        error: "discovery index unavailable",
+        reason: "INDEX_NOT_READY",
+        status: discoveryStatus,
+      });
+    }
+
     const q = request.query as Record<string, unknown>;
 
     const query = typeof q.query === "string" ? q.query.trim() : "";
@@ -338,5 +417,53 @@ export function buildFacilitator(
     catalog,
     search,
     searchSettled: () => syncSettled,
+    initializeSearch,
+    discoveryStatus: () => discoveryStatus,
+  };
+}
+
+/**
+ * The production boot sequence, in one place.
+ *
+ * Order matters and is deliberate:
+ *
+ *   1. build — routes exist, discovery reports `initializing`
+ *   2. listen — liveness is available immediately, so a platform health check
+ *      does not time out while step 3 loads an ~86 MB model on a cold image
+ *   3. rebuild the index — discovery becomes ready, or reports why not
+ *
+ * Listening before the index is built is what makes readiness a real signal
+ * rather than a formality: there is a window where the process is alive and
+ * discovery honestly says it cannot answer yet.
+ *
+ * A failed index does not fail the boot. Verification and settlement do not
+ * read it, and taking a working payment plane offline because derived state
+ * could not be rebuilt would trade a degraded feature for an outage.
+ *
+ * @param store - Injectable catalog store, for tests.
+ */
+export async function startFacilitator(
+  config: FacilitatorConfig,
+  store?: CatalogStore,
+): Promise<StartedFacilitator> {
+  const built = buildFacilitator(config, store);
+
+  const address = await built.app.listen({ port: config.port, host: "0.0.0.0" });
+  const result = await built.initializeSearch();
+
+  console.log(
+    JSON.stringify(
+      result.ok
+        ? { event: "search_index_ready", indexed: result.indexed }
+        : { event: "search_index_failed", error: result.error },
+    ),
+  );
+
+  return {
+    ...built,
+    address,
+    stop: async () => {
+      await built.app.close();
+    },
   };
 }
