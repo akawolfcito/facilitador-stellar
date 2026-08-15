@@ -234,7 +234,13 @@ testnet USDC. Ship it after C, not before.
 **Reject: B.** It moves the funding problem into a faucet and claims a custody
 story the architecture does not support.
 
-**D remains the fallback**, and remains a defensible place to stand.
+**D remains the permanent floor, not a temporary fallback.** When the demo
+budget is exhausted, or the demo buyer is disabled, or its balance is below the
+floor, x402Seek is still completely useful: live discovery answers, abstention
+still refuses, the live 402 is still readable, and the recorded evidence is
+still there. The payment button is an addition to that, never a dependency of
+it. Any design in which the site degrades to broken rather than to D is the
+wrong design.
 
 ### Required new security controls
 
@@ -243,12 +249,27 @@ network lock; per-IP and global rate limits; daily spend ceiling with an
 explicit 429; idempotency window; float floor alert; strict separation of the
 demo buyer secret from the facilitator signer.
 
+### A note on what the new route is
+
+Every route x402seek-web serves today is read-only, and the word has been doing
+real work: it is why the site can be audited quickly. The route that triggers a
+demo payment breaks that, and calling it read-only anyway would be the kind of
+convenient wording this project keeps refusing elsewhere. It spends money. It is
+a **bounded demo-payment proxy**: one fixed purpose, no caller-supplied payment
+parameters, and an economic side effect every time it succeeds.
+
+The distinction that makes the risk tractable is not "an endpoint that pays
+x402". It is "a button that runs exactly this demo and nothing else". An
+endpoint that pays x402 would have to be trusted; a button with one hard-coded
+destination, one hard-coded asset and one hard-coded amount can be bounded
+instead.
+
 ### Required new infrastructure
 
 One Railway service; one funded testnet buyer account (USDC float plus a small
 XLM reserve, though sponsorship means fees are covered); one secret in Railway,
-never in the web app; a spend counter that survives restart; one proxied
-read-only route in x402seek-web.
+never in the web app; a spend counter that survives restart; one bounded
+demo-payment proxy route in x402seek-web.
 
 ### Expected size
 
