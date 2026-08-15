@@ -46,9 +46,13 @@ async function buyerBalanceUnits(): Promise<bigint | null> {
     const balance = account.balances.find(
       (b) => (b as { contract_id?: string }).contract_id === DEMO_ASSET,
     ) as { balance?: string } | undefined;
-    if (!balance?.balance) return null;
+    // An account that exists with no USDC entry holds no USDC. That is zero,
+    // not unknown, and reporting it as unknown would let the floor wave through
+    // a buyer that cannot possibly pay.
+    if (!balance?.balance) return 0n;
     return BigInt(Math.round(Number(balance.balance) * 1e7));
   } catch {
+    // Only a failure to ask is unknown.
     return null;
   }
 }
