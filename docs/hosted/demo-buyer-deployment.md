@@ -67,7 +67,17 @@ Two units of the day's budget were committed by those pre-fix attempts, which is
 the reserve-before-signing rule working as intended. The budget resets at 00:00
 UTC.
 
-## What is blocked
+## Resolved
+
+Funded with 5 USDC on 2026-08-15T22:58:11Z from the e2e buyer
+`GBA75KBIVWVJ53QOTG5E3K5O5BJQUHDKT6EYZCCABCB32YSNJZNQR7N6`, after the trustline
+made somewhere for it to land. The first browser-triggered settlement followed
+at 22:59:51Z and is recorded in `HOSTED-E-07-demo-browser-payment.md`.
+
+The section below is kept as written, because what blocked it is worth
+remembering.
+
+## What was blocked
 
 **5 USDC of canonical testnet USDC**
 (`CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA`) to
