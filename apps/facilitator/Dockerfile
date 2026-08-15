@@ -74,7 +74,12 @@ USER node
 WORKDIR /app/apps/facilitator
 
 EXPOSE 4402
-VOLUME ["/data"]
+
+# No `VOLUME /data` instruction on purpose. Railway rejects it outright —
+# "docker VOLUME is not supported, use Railway Volumes" — because the platform
+# mounts the volume itself. The mkdir above still matters: it gives the mount
+# point the right ownership for the non-root user when nothing is mounted over
+# it, which is what makes a local `docker run` behave like the hosted one.
 
 # Readiness, not liveness: 200 here means discovery can actually answer.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
