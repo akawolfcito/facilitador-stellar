@@ -36,6 +36,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const RUNTIME_WORKSPACES = [
   "apps/facilitator",
   "apps/mcp-discovery",
+  // A service we intend to operate publicly belongs in the audited graph. Left
+  // out, its dependencies would ship unexamined while the report still claimed
+  // to cover what we run.
+  "apps/demo-seller",
   "packages/catalog",
   "packages/search",
 ];
