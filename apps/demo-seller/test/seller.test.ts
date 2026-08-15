@@ -109,8 +109,8 @@ describe("configuration", () => {
   });
 });
 
-describe("health", () => {
-  it("answers without payment", async () => {
+describe("health and readiness are different questions", () => {
+  it("answers health without payment", async () => {
     const response = await seller().inject({ method: "GET", url: "/health" });
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({
@@ -119,6 +119,55 @@ describe("health", () => {
       network: STELLAR_TESTNET_CAIP2,
       resource: `${BASE}${RESOURCE_PATH}`,
     });
+  });
+
+  it("stays alive, and admits it is not ready, while the facilitator is down", async () => {
+    // The defect this replaced: /health returned {"status":"ok"} throughout an
+    // outage in which the seller could only answer 500 on its paid route.
+    const app = buildSeller(config(), () => ({
+      ready: false,
+      attempts: 4,
+      lastError: "connect ECONNREFUSED",
+    }));
+
+    const health = await app.inject({ method: "GET", url: "/health" });
+    expect(health.statusCode).toBe(200);
+    expect(health.json().status).toBe("ok");
+    expect(health.json().ready).toBe(false);
+    expect(health.json().facilitator).toMatchObject({
+      status: "unavailable",
+      attempts: 4,
+      error: "connect ECONNREFUSED",
+    });
+
+    const ready = await app.inject({ method: "GET", url: "/ready" });
+    expect(ready.statusCode).toBe(503);
+    expect(ready.json()).toMatchObject({ ready: false, error: "FACILITATOR_UNAVAILABLE" });
+  });
+
+  it("reports ready once the facilitator can serve what this seller sells", async () => {
+    const since = "2026-08-15T12:00:00.000Z";
+    const app = buildSeller(config(), () => ({ ready: true, attempts: 0, readySince: since }));
+
+    const ready = await app.inject({ method: "GET", url: "/ready" });
+    expect(ready.statusCode).toBe(200);
+    expect(ready.json()).toEqual({ ready: true, since });
+    expect((await app.inject({ method: "GET", url: "/health" })).json()).toMatchObject({
+      ready: true,
+      facilitator: { status: "ready", since },
+    });
+  });
+
+  it("never reports ready before anything has probed", async () => {
+    // buildSeller's default, used by every test that starts no probe.
+    expect((await seller().inject({ method: "GET", url: "/ready" })).statusCode).toBe(503);
+    expect((await seller().inject({ method: "GET", url: "/health" })).json().ready).toBe(false);
+  });
+
+  it("keeps readiness unpaid and unwritable", async () => {
+    const routes = seller().printRoutes({ commonPrefix: false });
+    expect(routes).toContain("ready");
+    expect(routes).not.toMatch(/POST|PUT|PATCH|DELETE/);
   });
 });
 
