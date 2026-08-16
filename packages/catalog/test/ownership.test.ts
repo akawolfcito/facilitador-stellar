@@ -18,6 +18,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   type FetchedDocument,
   isForbiddenAddress,
+  pinnedLookup,
   verifyOwnership,
 } from "../src/ownership/verifier.js";
 import {
@@ -224,6 +225,31 @@ describe("the SSRF boundary", () => {
       "https://demo-api.testnet.x402seek.xyz/.well-known/x402",
       "93.184.216.34",
     );
+  });
+
+  it("answers a pinned lookup in both shapes node uses", () => {
+    // Getting this wrong is not a type error. It surfaces as "Invalid IP
+    // address: undefined" from inside net.connect, which is how the hosted
+    // acceptance found it: the verifier had been recording WELL_KNOWN_INVALID
+    // against a document that was perfectly valid.
+    const lookup = pinnedLookup("93.184.216.34");
+
+    const positional = vi.fn();
+    lookup("example.com", {}, positional);
+    expect(positional).toHaveBeenCalledWith(null, "93.184.216.34", 4);
+
+    const all = vi.fn();
+    lookup("example.com", { all: true }, all);
+    expect(all).toHaveBeenCalledWith(null, [{ address: "93.184.216.34", family: 4 }]);
+
+    // Some callers pass the callback in the options position.
+    const twoArg = vi.fn();
+    lookup("example.com", twoArg);
+    expect(twoArg).toHaveBeenCalledWith(null, "93.184.216.34", 4);
+
+    const v6 = vi.fn();
+    pinnedLookup("2606:2800:220:1::1")("example.com", {}, v6);
+    expect(v6).toHaveBeenCalledWith(null, "2606:2800:220:1::1", 6);
   });
 
   it("classifies addresses correctly in isolation", () => {
