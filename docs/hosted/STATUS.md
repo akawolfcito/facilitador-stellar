@@ -75,5 +75,7 @@ must not become one.
 - `HOSTED-E-01`…`HOSTED-E-06`: hosted facilitator, seller, settlement, cataloging, restart
 - `HOSTED-E-07`: the first browser-triggered settlement, and the defects it exposed
 - `HOSTED-E-08`: domain binding, verified then contradicted then restored
+- `FREEZE-well-known-ownership.md`: what is frozen, and the path caveat
+- `roadmap-recheck-2026-08-16.md`: upstream state and the next step
 - `demo-buyer-implementation-plan.md`: what was approved before any of it was built
 - `browser-payment-architecture.md`: the four options and why C was chosen
