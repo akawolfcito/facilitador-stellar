@@ -216,6 +216,16 @@ export class SpendLedger {
       );
   }
 
+  /** Is the database still answering? Cheap enough to ask on every probe. */
+  healthy(): boolean {
+    try {
+      this.db.prepare("SELECT 1").get();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   prune(): void {
     this.db
       .prepare("DELETE FROM requests WHERE created_ms < ?")

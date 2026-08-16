@@ -31,11 +31,28 @@ const ALLOWED_BODY_KEYS = new Set(["requestId", "text"]);
 
 const AMOUNT_UNITS = Number(DEMO_AMOUNT);
 
+/**
+ * What the chain says about the buyer's ability to pay.
+ *
+ * `trustline` and `units` are separate because they fail differently. No
+ * trustline means USDC cannot even arrive, which is an operator problem worth
+ * naming. A trustline with too little in it is a funding problem. Reporting
+ * both as "zero" is what hid the first one for an afternoon.
+ */
+export interface BalanceReading {
+  /** Whether the canonical USDC trustline exists at all. */
+  trustline: boolean;
+  /** Balance in base units, or null when Horizon could not be asked. */
+  units: bigint | null;
+}
+
 export interface DemoBuyerDeps {
   /** Injected so tests never sign anything and never touch the network. */
   pay: (text: string) => Promise<PayOutcome>;
-  /** Buyer's USDC balance in base units, or null when it cannot be read. */
-  balance: () => Promise<bigint | null>;
+  /** Buyer's USDC position, read from the classic trustline. */
+  balance: () => Promise<BalanceReading>;
+  /** Whether the seller's live 402 currently matches the demo invariants. */
+  liveTerms: () => Promise<{ ok: boolean }>;
   now?: () => number;
   log?: (record: Record<string, unknown>) => void;
 }
@@ -222,9 +239,10 @@ export function buildDemoBuyer(
     }
 
     // ---- balance, before the budget is touched ---------------------------
-    const balance = await deps.balance();
+    const reading = await deps.balance();
+    const balance = reading.units;
     metrics.recordBalance(balance);
-    if (balance !== null && balance < config.balanceFloorUnits) {
+    if (!reading.trustline || (balance !== null && balance < config.balanceFloorUnits)) {
       limiter.refund(`ip:${bucket}`);
       metrics.record("balance_floor_rejected");
       log({ event: "balance_floor", guidance: ALERT_GUIDANCE.buyerBalanceUnits });
@@ -309,17 +327,62 @@ export function buildDemoBuyer(
     enabled: config.enabled,
   }));
 
-  /** Readiness: can this service actually pay right now? */
+  /**
+   * Readiness: can this service actually pay right now?
+   *
+   * Every condition a payment depends on, asked in the order they fail in.
+   * Answering only "is there budget left" was cheap and wrong: it returned 200
+   * for a buyer with no trustline, no funds, and a seller that might be quoting
+   * terms this service is not allowed to pay.
+   *
+   * The live 402 check is cached briefly, because /ready is for operators and a
+   * probe that hammers the seller is its own outage.
+   */
+  let termsCache: { at: number; ok: boolean } | undefined;
+  const TERMS_CACHE_MS = 30_000;
+
   app.get("/ready", async (_request, reply) => {
+    const checks: Record<string, boolean> = {};
+
+    checks.ledgerOpen = ledger.healthy();
+    checks.demoEnabled = config.enabled;
+
     const remaining = ledger.remainingToday();
-    const ready = config.enabled && remaining.payments > 0 && remaining.units >= AMOUNT_UNITS;
-    if (!ready) {
-      return reply.code(503).send({
-        ready: false,
-        error: config.enabled ? "DEMO_BUDGET_EXHAUSTED" : "DEMO_DISABLED",
-      });
+    checks.budgetRemaining = remaining.payments > 0 && remaining.units >= AMOUNT_UNITS;
+
+    const reading = await deps.balance();
+    checks.usdcTrustline = reading.trustline;
+    checks.balanceReadable = reading.units !== null;
+    checks.balanceAboveFloor = reading.units !== null && reading.units >= config.balanceFloorUnits;
+    metrics.recordBalance(reading.units);
+
+    if (!termsCache || now() - termsCache.at > TERMS_CACHE_MS) {
+      const verdict = await deps.liveTerms();
+      termsCache = { at: now(), ok: verdict.ok };
     }
-    return { ready: true, remainingToday: remaining.payments };
+    checks.liveTermsMatch = termsCache.ok;
+
+    const failed = Object.entries(checks).find(([, value]) => value !== true);
+    if (!failed) {
+      return {
+        ready: true,
+        remainingToday: remaining.payments,
+        balanceUnits: reading.units?.toString() ?? null,
+      };
+    }
+
+    // A closed reason set. No upstream text, no secret, and nothing an
+    // attacker could mine for a funding schedule beyond what /health says.
+    const REASONS: Record<string, string> = {
+      ledgerOpen: "LEDGER_UNAVAILABLE",
+      demoEnabled: "DEMO_DISABLED",
+      budgetRemaining: "DEMO_BUDGET_EXHAUSTED",
+      usdcTrustline: "BUYER_NO_TRUSTLINE",
+      balanceReadable: "BALANCE_UNREADABLE",
+      balanceAboveFloor: "BUYER_BALANCE_LOW",
+      liveTermsMatch: "LIVE_TERMS_CHANGED",
+    };
+    return reply.code(503).send({ ready: false, error: REASONS[failed[0]] ?? "NOT_READY", checks });
   });
 
   if (config.metricsToken) {

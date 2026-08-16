@@ -8,11 +8,11 @@
 
 import { Horizon } from "@stellar/stellar-sdk";
 import { createEd25519Signer } from "@x402/stellar";
-import { buildDemoBuyer } from "./app.js";
+import { type BalanceReading, buildDemoBuyer } from "./app.js";
 import { loadDemoBuyerConfig, redact } from "./config.js";
 
 import { SpendLedger } from "./ledger.js";
-import { payForDemo } from "./pay.js";
+import { payForDemo, readLiveTerms } from "./pay.js";
 
 const config = loadDemoBuyerConfig();
 
@@ -44,35 +44,41 @@ const horizon = new Horizon.Server(config.horizonUrl);
 const USDC_CLASSIC_ISSUER = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
 
 /**
- * The buyer's own USDC balance, in base units.
+ * The buyer's USDC position, read from the classic trustline.
  *
- * Read-only, and failure is not fatal: `null` means "could not tell", and the
- * floor check treats that as "carry on" rather than blocking the demo because
- * Horizon had a bad minute. The budget is the real ceiling; the floor is a
- * courtesy that stops the demo before it starts failing on chain.
+ * Read-only. `units: null` means Horizon could not be asked, which readiness
+ * reports as unreadable rather than as broke. The budget is the real ceiling;
+ * the floor is a courtesy that stops the demo before it starts failing on chain.
  */
-async function buyerBalanceUnits(): Promise<bigint | null> {
+async function buyerUsdcPosition(): Promise<BalanceReading> {
   try {
     const account = await horizon.accounts().accountId(buyerAddress).call();
-    const balance = account.balances.find(
+    const line = account.balances.find(
       (b) =>
         (b as { asset_code?: string }).asset_code === "USDC" &&
         (b as { asset_issuer?: string }).asset_issuer === USDC_CLASSIC_ISSUER,
     ) as { balance?: string } | undefined;
-    // No trustline means no balance, and also means none can arrive. Zero, not
-    // unknown: reporting it as unknown would let the floor wave through a buyer
-    // that cannot possibly pay.
-    if (!balance?.balance) return 0n;
-    return BigInt(Math.round(Number(balance.balance) * 1e7));
+
+    // No trustline and an empty trustline fail differently and are reported
+    // differently. Collapsing them into "zero" is what hid the missing
+    // trustline for an afternoon.
+    if (!line) return { trustline: false, units: 0n };
+    return { trustline: true, units: BigInt(Math.round(Number(line.balance ?? "0") * 1e7)) };
   } catch {
     // Only a failure to ask is unknown.
-    return null;
+    return { trustline: false, units: null };
   }
 }
 
 const app = buildDemoBuyer(config, ledger, {
   pay: (text) => payForDemo(config.buyerSecret, config.network, text),
-  balance: buyerBalanceUnits,
+  balance: buyerUsdcPosition,
+  // Readiness asks the seller what it is charging right now. The answer is
+  // cached in app.ts, so this is not called per probe.
+  liveTerms: async () => {
+    const verdict = await readLiveTerms();
+    return { ok: verdict.ok };
+  },
 });
 
 await app.listen({ port: config.port, host: "::" });
