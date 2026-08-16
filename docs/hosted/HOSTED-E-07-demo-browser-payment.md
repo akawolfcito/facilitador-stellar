@@ -105,6 +105,57 @@ seller, an account that had been receiving USDC for days, and getting zero. With
 that bug the balance floor would have refused every payment forever once the
 buyer was funded. Fixed in `83133ef`.
 
+## Every settlement this buyer has made
+
+Reconciled against the ledger and the chain after a restart, because a record
+that only mentions the payment I meant to make is not a record.
+
+| When (UTC) | Status | Transaction | What it was |
+| --- | --- | --- | --- |
+| 2026-08-15T20:53:55 | `uncertain` | none | pre-fix probe, signed against an unfunded account |
+| 2026-08-15T22:59:44 | `settled` | `1ef1a6bb8d6d…` | the canonical payment recorded above |
+| 2026-08-15T23:11:39 | `settled` | `5456de18d29c…` | a second browser-triggered payment, twelve minutes later |
+| 2026-08-16T02:40:46 | `settled` | `5dc0ab05cdbb…` | spent by my own Option D test, see below |
+
+Buyer USDC: 5.0000000 funded, 4.9970000 now. Three settlements at 0.001 each.
+Ledger: 3 payments and 30000 units on 2026-08-15, 1 payment and 10000 units on
+2026-08-16. The day rolled at 00:00 UTC exactly as designed.
+
+The second settlement was not initiated from this terminal. It came through the
+public button while the deployment was live. Attribution is not possible from
+the ledger, for the reason in the next section.
+
+The fourth was mine and was avoidable. Switching `DEMO_ENABLED` to false takes
+about thirty seconds to reach the container, and the loop I used to detect the
+change was posting a *payable* body every ten seconds. The first one paid. An
+invalid body would have told me the same thing for nothing. Recorded because a
+test that quietly spends is exactly the kind of thing a spend ledger exists to
+surface.
+
+## The rate limit was limiting the wrong thing
+
+Found by reading the ledger rather than by reasoning about it. All three
+requests on 2026-08-15 carried the same bucket, from three different moments.
+
+The demo buyer sits behind the web proxy on Railway's private network, so the
+only peer it ever sees is that proxy. Every visitor arrived as the same address.
+Two consequences:
+
+- the per-IP limit of three an hour was a **global** three an hour on the whole
+  site, which fails safe but is not the control that was described;
+- the thirty second duplicate guard, which exists to catch a double click, could
+  have handed one visitor **another visitor's receipt**: same bucket, recent row,
+  replay.
+
+The visitor's identity only exists at the proxy, so that is where it is derived
+now, hashed to sixteen hex characters and passed down as `clientKey`. The proxy
+enforces three an hour on the real address before the buyer is troubled; the
+buyer uses the key as its bucket and falls back to the peer address without one.
+`clientKey` selects a queue and nothing else, and is refused from a caller's
+body, because a caller who can name their own bucket has no limit at all.
+
+Fixed in core `dcb9e75` and web `d998705`.
+
 ## What this does not claim
 
 One payment. Not traffic, not volume, not uptime, not a load test. The budget,
