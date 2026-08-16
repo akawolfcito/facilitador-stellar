@@ -16,10 +16,18 @@ have to reconstruct.
 | SCF freeze | `762c6e6`, untouched; `docs/scf/` is not modified by this package |
 | Tests | 388 core, 97 web, typecheck clean, licence gate green |
 
+**Start at `auditor-handoff.md`.** It gives a reading order, names the four
+things worth the first hour, and states what we already believe is weak.
+
+The baseline is frozen: `BASELINE-2026-08-16.md`, core `1ca2684`, web `64cfa78`,
+with the deployed commit of every service recorded.
+
 ## The documents
 
 | File | What it answers |
 | --- | --- |
+| `auditor-handoff.md` | **read first**: order, priorities, and the `upto` re-review scope |
+| `BASELINE-2026-08-16.md` | the frozen baseline, and what invalidates it |
 | `architecture.md` | what runs where, and which boundary each hop crosses |
 | `assets-and-trust-boundaries.md` | what is worth protecting, and who is trusted with it |
 | `security-invariants.md` | what must always hold, with code, test and hosted evidence |
