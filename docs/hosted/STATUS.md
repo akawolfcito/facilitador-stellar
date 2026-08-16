@@ -26,6 +26,8 @@ moved, verified against the chain rather than against an HTTP status.
 - persistent search index and catalog across restart
 - restart-safe demo spend ledger, reserve-before-signing
 - idempotent demo payment trigger, verified in production
+- `.well-known/x402` domain binding, with the contradiction case demonstrated
+  against the live deployment (`HOSTED-E-08`)
 
 ## Not yet
 
@@ -33,7 +35,6 @@ moved, verified against the chain rather than against an HTTP status.
 - the `upto` scheme
 - contract accounts
 - third-party security review
-- `.well-known/x402` domain binding
 - user-controlled wallet payment (option A in the architecture note)
 
 ## Services
@@ -73,5 +74,6 @@ must not become one.
 
 - `HOSTED-E-01`…`HOSTED-E-06`: hosted facilitator, seller, settlement, cataloging, restart
 - `HOSTED-E-07`: the first browser-triggered settlement, and the defects it exposed
+- `HOSTED-E-08`: domain binding, verified then contradicted then restored
 - `demo-buyer-implementation-plan.md`: what was approved before any of it was built
 - `browser-payment-architecture.md`: the four options and why C was chosen
