@@ -26,8 +26,19 @@ import {
 import { ALERT_GUIDANCE, Metrics } from "./metrics.js";
 import { type PayOutcome, sanitiseText } from "./pay.js";
 
-/** Every property the body may carry. Anything else is a 400, not a shrug. */
-const ALLOWED_BODY_KEYS = new Set(["requestId", "text"]);
+/**
+ * Every property the body may carry. Anything else is a 400, not a shrug.
+ *
+ * `clientKey` is not a caller field. It is set by the web proxy, which is the
+ * only peer that can reach this service, and it carries the visitor's hashed
+ * address bucket. Without it every visitor arrives as the proxy and the per-IP
+ * limit limits nothing, which the ledger showed plainly: three requests from
+ * three moments, one bucket.
+ *
+ * It cannot influence a payment. It selects a rate-limit bucket and nothing
+ * else, so the worst a forged one achieves is a different queue to wait in.
+ */
+const ALLOWED_BODY_KEYS = new Set(["requestId", "text", "clientKey"]);
 
 const AMOUNT_UNITS = Number(DEMO_AMOUNT);
 
@@ -192,7 +203,13 @@ export function buildDemoBuyer(
         ? body.requestId
         : `srv-${now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-    const bucket = bucketFingerprint(clientBucket(request.ip));
+    // The proxy's key when it supplied one, the peer address otherwise. The
+    // fallback matters for a direct call, which on this deployment can only
+    // come from inside the private network.
+    const bucket =
+      typeof body.clientKey === "string" && /^[a-f0-9]{16}$/.test(body.clientKey)
+        ? body.clientKey
+        : bucketFingerprint(clientBucket(request.ip));
 
     // ---- the switch -----------------------------------------------------
     if (!config.enabled) {
