@@ -146,6 +146,36 @@ export function buildSeller(
   });
 
   /**
+   * The origin's ownership declaration.
+   *
+   * Unpaid, static and deterministic. It states that whoever controls this
+   * origin authorises this resource to be catalogued against this payTo on this
+   * network. It proves domain control and nothing else: it is not signed by the
+   * payTo key, so it is not wallet proof, and it says nothing about whether a
+   * payment will be honoured. The live 402 remains the payment authority.
+   *
+   * The schema is an x402Seek implementation convention. There is no merged
+   * upstream .well-known/x402, and the "kind" field exists so a reader that
+   * wants a different kind of document at this path can skip this one.
+   */
+  app.get("/.well-known/x402", async (_request, reply) => {
+    return reply
+      .header("content-type", "application/json")
+      .header("cache-control", "public, max-age=300")
+      .send({
+        version: 1,
+        kind: "resource-ownership",
+        resources: [
+          {
+            resource: resourceUrl,
+            payTo: config.payTo,
+            network: config.network,
+          },
+        ],
+      });
+  });
+
+  /**
    * Liveness. Unpaid on purpose: a health check must not need a wallet.
    *
    * This stays 200 for as long as the process serves requests, including while

@@ -208,6 +208,46 @@ describe("dependency boundary", () => {
   });
 });
 
+describe("the ownership declaration", () => {
+  it("declares this resource, this payTo, this network, and nothing else", async () => {
+    const response = await seller().inject({ method: "GET", url: "/.well-known/x402" });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toContain("application/json");
+
+    const doc = response.json();
+    expect(doc).toEqual({
+      version: 1,
+      kind: "resource-ownership",
+      resources: [
+        {
+          resource: `${BASE}${RESOURCE_PATH}`,
+          payTo: PAY_TO,
+          network: STELLAR_TESTNET_CAIP2,
+        },
+      ],
+    });
+    // No wildcard, no scheme, no asset, no expiry. Ownership is about who may
+    // hold the listing; the live 402 governs terms.
+    const text = JSON.stringify(doc);
+    expect(text).not.toContain("*");
+    expect(text).not.toContain("scheme");
+    expect(text).not.toContain("asset");
+  });
+
+  it("needs no payment and holds no secret", async () => {
+    const response = await seller().inject({ method: "GET", url: "/.well-known/x402" });
+    expect(response.statusCode).not.toBe(402);
+    expect(response.body).not.toMatch(/S[A-Z2-7]{55}/);
+  });
+
+  it("is deterministic", async () => {
+    const app = seller();
+    const first = await app.inject({ method: "GET", url: "/.well-known/x402" });
+    const second = await app.inject({ method: "GET", url: "/.well-known/x402" });
+    expect(first.body).toBe(second.body);
+  });
+});
+
 describe("the route surface", () => {
   it("exposes only health and the one paid resource", () => {
     const routes = seller().printRoutes({ commonPrefix: false });

@@ -15,6 +15,8 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import {
   SqliteCatalogStore,
   catalogSettlement,
+  refreshIfStale,
+  scheduleVerification,
   encodeExtensionResponses,
   type CatalogOutcome,
   type CatalogStore,
@@ -208,6 +210,17 @@ export function buildFacilitator(
         );
       } else if (outcome.kind === "cataloged") {
         metrics.catalogWritesSucceeded += 1;
+
+        // Domain binding, off the response path and never awaited.
+        //
+        // The listing is already written as `tofu` and the payment has already
+        // settled. This asks the resource's own origin whether it authorises
+        // that payTo, and upgrades or contradicts the binding afterwards. A
+        // seller whose web server is down must not be able to affect a payment
+        // that already happened, so nothing here can be waited on.
+        void scheduleVerification(catalog, outcome.listing, {
+          log: (record) => console.log(JSON.stringify(record)),
+        });
       }
 
       // Bring the derived index up to date — off the response path.
@@ -578,7 +591,16 @@ export function buildFacilitator(
         : {}),
     };
 
-    return toDiscoveryResourcesResponse(catalog.list(query));
+    const page = catalog.list(query);
+
+    // Stale-while-revalidate: the caller gets the current binding now, and any
+    // listing whose result has aged out is re-checked behind this response.
+    // Traffic drives freshness, so nothing needs a cron.
+    for (const listing of page.resources) {
+      refreshIfStale(catalog, listing, { log: (r) => console.log(JSON.stringify(r)) });
+    }
+
+    return toDiscoveryResourcesResponse(page);
   });
 
   /**
