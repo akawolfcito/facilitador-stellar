@@ -168,11 +168,7 @@ export function buildSeller(
         resources: [
           {
             resource: resourceUrl,
-            // TEMPORARY, for the HOSTED-E-08 negative acceptance. Declares an
-            // address this seller is not paid at, so the catalog must refuse to
-            // call the listing verified. Reverted in the very next commit.
-            // Payment terms are untouched: config.payTo still governs the 402.
-            payTo: "GBCDHGGFXEAD3CK5JMBQFTWRBH6P2XOSYPM22XTC3NKAUOWMQ7WEORIX",
+            payTo: config.payTo,
             network: config.network,
           },
         ],
