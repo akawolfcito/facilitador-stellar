@@ -11,6 +11,7 @@
  * wrote. Upstream text never reaches the browser.
  */
 
+import { timingSafeEqual } from "node:crypto";
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import { type DemoBuyerConfig } from "./config.js";
 import { DEMO_AMOUNT, DEMO_RESOURCE_URL } from "./invariants.js";
@@ -403,9 +404,24 @@ export function buildDemoBuyer(
   });
 
   if (config.metricsToken) {
+    const expected = Buffer.from(config.metricsToken);
+
     app.get("/internal/metrics", async (request, reply) => {
-      const offered = request.headers.authorization;
-      if (offered !== `Bearer ${config.metricsToken}`) {
+      const header = request.headers.authorization ?? "";
+      const presented = Buffer.from(header.startsWith("Bearer ") ? header.slice(7) : header);
+
+      // SR-02. A plain `!==` returns as soon as two bytes differ, so the time
+      // it takes leaks how long a prefix matched. Compared in constant time
+      // now, and only when the lengths already match, because timingSafeEqual
+      // throws on a length mismatch and that throw would leak the same thing.
+      //
+      // The facilitator already did this correctly; this brings the buyer in
+      // line. The 404 is kept on purpose: a wrong token must not tell anyone
+      // the endpoint is there.
+      const authorized =
+        presented.length === expected.length && timingSafeEqual(presented, expected);
+
+      if (!authorized) {
         return reply.code(404).send({ error: "Not Found" });
       }
       return { ...metrics.snapshot(budgetView()), guidance: ALERT_GUIDANCE, idempotencyMs: IP_GUARD_MS };
