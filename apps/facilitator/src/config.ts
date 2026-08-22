@@ -8,6 +8,7 @@
  */
 
 import { STELLAR_PUBNET_CAIP2, STELLAR_TESTNET_CAIP2 } from "@x402/stellar";
+import { parseTrustProxy, type RatePolicy } from "./limits.js";
 
 export type StellarNetwork = typeof STELLAR_TESTNET_CAIP2 | typeof STELLAR_PUBNET_CAIP2;
 
@@ -27,6 +28,52 @@ export interface FacilitatorConfig {
    * non-durable and is only appropriate for tests.
    */
   catalogPath: string;
+
+  // ---- public request controls (see limits.ts) ----
+
+  /**
+   * Whether to believe `X-Forwarded-For`, and for how many hops.
+   *
+   * `false` by default so an unproxied deployment cannot be told who its
+   * clients are. Set `TRUST_PROXY=1` on Railway. Optional: `buildFacilitator`
+   * applies the safe default.
+   */
+  trustProxy?: boolean | number;
+  /** Per-IP request budget by route class. Defaults to `DEFAULT_RATE_POLICY`. */
+  rateLimits?: RatePolicy;
+  /** Concurrent `/settle` submissions. Defaults to `DEFAULT_SETTLE_MAX_INFLIGHT`. */
+  settleMaxInflight?: number;
+  /**
+   * Largest request body accepted, in bytes. 64 KiB by default: an `exact`
+   * Stellar payload carries a base64 auth entry measured in kilobytes, so this
+   * is generous by an order of magnitude while still refusing anything absurd
+   * before a handler runs.
+   */
+  bodyLimitBytes?: number;
+  /**
+   * Time allowed to *receive* a request, in milliseconds.
+   *
+   * This bounds slow clients, not handlers. Settlement itself takes about 8.6 s
+   * end to end (E-23), almost all of it ledger close, and Fastify's
+   * `requestTimeout` does not apply to that — so a value tight enough to be
+   * useful against a slow-loris is still nowhere near the settlement path.
+   */
+  requestTimeoutMs?: number;
+  /** Idle keep-alive socket timeout, in milliseconds. */
+  keepAliveTimeoutMs?: number;
+
+  // ---- operations ----
+
+  /**
+   * Whether `GET /internal/metrics` is routed at all.
+   *
+   * Off unless `ENABLE_INTERNAL_METRICS=true` *and* `METRICS_TOKEN` is set. Two
+   * switches rather than one: enabling observability by accident should not be
+   * the same action as leaving it unauthenticated.
+   */
+  enableInternalMetrics?: boolean;
+  /** Bearer token for the internal metrics endpoint. Never logged. */
+  metricsToken?: string;
 }
 
 const DEFAULT_RPC_URL: Record<StellarNetwork, string> = {
@@ -76,8 +123,33 @@ function parseSigners(raw: string | undefined): string[] {
 }
 
 /** Build and validate configuration from an environment-like record. */
+/**
+ * Refuse to boot on a network the deployment did not intend.
+ *
+ * `STELLAR_NETWORK` accepts `pubnet`, so a single mistyped or inherited value
+ * is the whole distance between a testnet preview and real money moving from a
+ * funded signer. This turns that into a second, independent statement: a
+ * deployment declares the network it is for, and a mismatch stops the process
+ * rather than being discovered on chain.
+ *
+ * Unset means unlocked, so nothing changes for local work or the harness.
+ */
+function assertNetworkLock(env: NodeJS.ProcessEnv, resolved: StellarNetwork): void {
+  const lock = env.DEPLOYMENT_NETWORK_LOCK?.trim();
+  if (!lock) return;
+
+  const expected = parseNetwork(lock);
+  if (expected !== resolved) {
+    throw new ConfigError(
+      `DEPLOYMENT_NETWORK_LOCK is "${lock}" but STELLAR_NETWORK resolved to "${resolved}". ` +
+        `Refusing to start: this deployment is not configured for that network.`,
+    );
+  }
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): FacilitatorConfig {
   const network = parseNetwork(env.STELLAR_NETWORK);
+  assertNetworkLock(env, network);
   return {
     port: parsePort(env.PORT),
     network,
@@ -85,10 +157,23 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): FacilitatorCon
     rpcUrl: env.STELLAR_RPC_URL?.trim() || DEFAULT_RPC_URL[network],
     areFeesSponsored: (env.ARE_FEES_SPONSORED ?? "true") !== "false",
     catalogPath: env.CATALOG_PATH?.trim() || "./catalog.db",
+    trustProxy: parseTrustProxy(env.TRUST_PROXY),
+    enableInternalMetrics: env.ENABLE_INTERNAL_METRICS === "true",
+    ...(env.METRICS_TOKEN?.trim() ? { metricsToken: env.METRICS_TOKEN.trim() } : {}),
   };
 }
 
-/** Configuration with secrets removed, safe to log. */
+/**
+ * Configuration with secrets removed, safe to log.
+ *
+ * Every secret-bearing field is replaced explicitly rather than filtered by
+ * name, so adding one to `FacilitatorConfig` without adding it here is a
+ * visible omission rather than a silent leak.
+ */
 export function redact(config: FacilitatorConfig): Record<string, unknown> {
-  return { ...config, signerSecrets: `${config.signerSecrets.length} signer(s)` };
+  return {
+    ...config,
+    signerSecrets: `${config.signerSecrets.length} signer(s)`,
+    ...(config.metricsToken ? { metricsToken: "set" } : {}),
+  };
 }

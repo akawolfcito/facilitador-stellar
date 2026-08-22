@@ -15,6 +15,8 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import {
   SqliteCatalogStore,
   catalogSettlement,
+  refreshIfStale,
+  scheduleVerification,
   encodeExtensionResponses,
   type CatalogOutcome,
   type CatalogStore,
@@ -30,12 +32,33 @@ import { ExactStellarScheme } from "@x402/stellar/exact/facilitator";
 import { createEd25519Signer } from "@x402/stellar";
 import Fastify, { type FastifyInstance } from "fastify";
 import type { FacilitatorConfig } from "./config.js";
+import {
+  DEFAULT_RATE_POLICY,
+  DEFAULT_SETTLE_MAX_INFLIGHT,
+  InflightLimiter,
+  RateLimiter,
+  bucketFingerprint,
+  classify,
+  clientBucket,
+} from "./limits.js";
+import { Metrics, classifySettleError, readFeeCharged } from "./metrics.js";
+import { timingSafeEqual } from "node:crypto";
+import { rpc } from "@stellar/stellar-sdk";
 
 /** Body shared by `/verify` and `/settle`. */
 interface FacilitatorRequestBody {
   paymentPayload?: PaymentPayload;
   paymentRequirements?: PaymentRequirements;
 }
+
+/**
+ * Whether the derived index can answer a query yet.
+ *
+ * `initializing` and `failed` both mean the same thing to a caller — we have not
+ * looked — and that is deliberately not the same as abstaining, which means we
+ * looked and found nothing worth paying for.
+ */
+export type DiscoveryStatus = "initializing" | "ready" | "failed";
 
 export interface BuiltFacilitator {
   app: FastifyInstance;
@@ -46,6 +69,23 @@ export interface BuiltFacilitator {
   search: SearchEngine;
   /** Resolves when any in-flight background index sync has finished. */
   searchSettled(): Promise<void>;
+  /**
+   * Rebuild the derived index from the persisted catalog.
+   *
+   * The catalog survives a restart; the vectors are cached alongside it but
+   * nothing loads them into the engine until this runs. Called once during
+   * boot — see `startFacilitator`.
+   */
+  initializeSearch(): Promise<{ ok: true; indexed: number } | { ok: false; error: string }>;
+  discoveryStatus(): DiscoveryStatus;
+  /** Operational counters. Exposed for tests and the internal endpoint. */
+  metrics: Metrics;
+}
+
+export interface StartedFacilitator extends BuiltFacilitator {
+  /** Address the server actually bound to, useful when the port was 0. */
+  address: string;
+  stop(): Promise<void>;
 }
 
 /**
@@ -162,6 +202,27 @@ export function buildFacilitator(
       const slot = catalogSlot.getStore();
       if (slot) slot.outcome = outcome;
 
+      if (outcome.kind === "rejected") {
+        metrics.catalogWritesFailed += 1;
+        metrics.reject(outcome.code === "OWNERSHIP_CONFLICT" ? "CATALOG_CONFLICT" : "UNKNOWN");
+        console.warn(
+          JSON.stringify({ event: "catalog_write_failed", reason: outcome.code }),
+        );
+      } else if (outcome.kind === "cataloged") {
+        metrics.catalogWritesSucceeded += 1;
+
+        // Domain binding, off the response path and never awaited.
+        //
+        // The listing is already written as `tofu` and the payment has already
+        // settled. This asks the resource's own origin whether it authorises
+        // that payTo, and upgrades or contradicts the binding afterwards. A
+        // seller whose web server is down must not be able to affect a payment
+        // that already happened, so nothing here can be waited on.
+        void scheduleVerification(catalog, outcome.listing, {
+          log: (record) => console.log(JSON.stringify(record)),
+        });
+      }
+
       // Bring the derived index up to date — off the response path.
       //
       // This used to `await search.sync()` here, which put embedding work
@@ -178,15 +239,195 @@ export function buildFacilitator(
       }
     });
 
-  const app = Fastify({ logger: false, genReqId: () => crypto.randomUUID() });
+  /**
+   * Readiness of the derived index.
+   *
+   * Starts `initializing`: the engine exists but holds no vectors, so every
+   * listing would score 0 and the abstention policy would refuse everything.
+   * Serving that as an abstention would be a lie, so discovery reports itself
+   * unavailable until `initializeSearch()` has run.
+   */
+  let discoveryStatus: DiscoveryStatus = "initializing";
+  let indexedCount = 0;
+  let discoveryError: string | undefined;
 
+  async function initializeSearch(): Promise<
+    { ok: true; indexed: number } | { ok: false; error: string }
+  > {
+    try {
+      const stats = await search.sync();
+      indexedCount = stats.total;
+      discoveryStatus = "ready";
+      discoveryError = undefined;
+      metrics.searchSyncSucceeded += 1;
+      console.info(
+        JSON.stringify({ event: "search_sync_succeeded", indexed: stats.total }),
+      );
+      return { ok: true, indexed: stats.total };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      discoveryStatus = "failed";
+      discoveryError = message;
+      metrics.searchSyncFailed += 1;
+      console.error(JSON.stringify({ event: "search_sync_failed", error: message }));
+      return { ok: false, error: message };
+    }
+  }
+
+  // ---- observability ------------------------------------------------------
+  const metrics = new Metrics();
+
+  /**
+   * Sponsored-fee bookkeeping, off the response path.
+   *
+   * The settlement has already been answered by the time this runs — the same
+   * reason index maintenance moved off that path. A seller must not wait on our
+   * accounting, and a lookup failure must degrade the number's completeness,
+   * never the settlement.
+   */
+  function recordSponsoredFee(hash: string): void {
+    void (async () => {
+      const server = new rpc.Server(config.rpcUrl);
+      const stroops = await readFeeCharged(server, hash);
+      metrics.recordFee(stroops);
+      if (stroops === undefined) {
+        console.warn(JSON.stringify({ event: "fee_lookup_failed", transaction: hash }));
+      }
+    })();
+  }
+
+  // ---- public request controls -------------------------------------------
+  const rateLimiter = new RateLimiter(config.rateLimits ?? DEFAULT_RATE_POLICY);
+  const settleInflight = new InflightLimiter(
+    config.settleMaxInflight ?? DEFAULT_SETTLE_MAX_INFLIGHT,
+  );
+
+  const app = Fastify({
+    logger: false,
+    genReqId: () => crypto.randomUUID(),
+    // Only believe forwarding headers when told to. See `parseTrustProxy`.
+    trustProxy: config.trustProxy ?? false,
+    // Rejected by Fastify before the body is parsed and long before a handler
+    // or a signer is reached.
+    bodyLimit: config.bodyLimitBytes ?? 64 * 1024,
+    requestTimeout: config.requestTimeoutMs ?? 15_000,
+    keepAliveTimeout: config.keepAliveTimeoutMs ?? 30_000,
+  });
+
+  /** Rejections carry the class and a fingerprint, never the address or the body. */
+  function logRejection(request: { id: string; url: string }, kind: string, bucket: string): void {
+    console.warn(
+      JSON.stringify({
+        event: "request_rejected",
+        kind,
+        route: request.url.split("?")[0],
+        requestId: request.id,
+        client: bucketFingerprint(bucket),
+      }),
+    );
+  }
+
+  app.addHook("onRequest", async (request, reply) => {
+    const route = classify(request.method, request.url);
+    if (route === "exempt") return;
+
+    const bucket = clientBucket(request.ip);
+    const decision = rateLimiter.check(bucket, route);
+
+    reply.header("X-RateLimit-Limit", String(decision.limit));
+    reply.header("X-RateLimit-Remaining", String(decision.remaining));
+
+    if (!decision.allowed) {
+      metrics.count(`${route}.requests`);
+      metrics.reject("RATE_LIMIT");
+      logRejection(request, `rate:${route}`, bucket);
+      return reply
+        .code(429)
+        .header("Retry-After", String(decision.retryAfter))
+        .send({
+          error: "too many requests",
+          reason: "RATE_LIMITED",
+          route,
+          retryAfter: decision.retryAfter,
+        });
+    }
+  });
+
+  /**
+   * Liveness and readiness in one document, kept distinct.
+   *
+   * `status` is liveness: the process is up and the payment plane is serving.
+   * `ready` is readiness for *discovery* only, and it is false until the index
+   * has been built. A failed index must not report the process as unhealthy —
+   * settlement does not depend on it, and restarting a working facilitator
+   * because a derived index could not load would be the worse outcome.
+   */
   app.get("/health", async () => ({
     status: "ok",
+    ready: discoveryStatus === "ready",
+    discovery: {
+      status: discoveryStatus,
+      indexed: indexedCount,
+      ...(discoveryError ? { error: discoveryError } : {}),
+    },
     network: config.network,
     rpcUrl: config.rpcUrl,
     signers: signers.length,
     catalog: catalog.list({ limit: 1 }).pagination.total,
+    settlements: { inFlight: settleInflight.inFlight },
   }));
+
+  /**
+   * `GET /ready` — readiness, as a status code.
+   *
+   * Separate from `/health` because a platform health check reads success or
+   * failure and nothing else. `/health` answers 200 whenever the process is up,
+   * which is what should keep a facilitator that is settling payments from
+   * being restarted; `/ready` answers 200 only when discovery can actually
+   * serve, so the two questions stay distinguishable to a machine.
+   */
+  app.get("/ready", async (_request, reply) => {
+    if (discoveryStatus !== "ready") {
+      return reply.code(503).send({ ready: false, discovery: discoveryStatus });
+    }
+    return { ready: true, discovery: discoveryStatus, indexed: indexedCount };
+  });
+
+  /**
+   * `GET /internal/metrics` — operator view, off by default.
+   *
+   * Two switches, not one: `ENABLE_INTERNAL_METRICS` routes it at all, and
+   * `METRICS_TOKEN` authorises it. Turning on observability by accident should
+   * not be the same action as publishing it. Without both, the route does not
+   * exist — a 404 rather than a 401, so its presence is not discoverable.
+   *
+   * The payload is counters and timestamps. No payload material, no signatures,
+   * no addresses, no environment, no signer state.
+   */
+  if (config.enableInternalMetrics && config.metricsToken) {
+    const expected = Buffer.from(config.metricsToken);
+
+    app.get("/internal/metrics", async (request, reply) => {
+      const header = request.headers.authorization ?? "";
+      const presented = Buffer.from(header.startsWith("Bearer ") ? header.slice(7) : header);
+
+      // Compare in constant time, and only when lengths already match —
+      // timingSafeEqual throws on a length mismatch, which would itself leak.
+      const authorized =
+        presented.length === expected.length && timingSafeEqual(presented, expected);
+
+      if (!authorized) {
+        return reply.code(401).send({ error: "unauthorized" });
+      }
+
+      return metrics.snapshot({
+        catalogListings: catalog.list({ limit: 1 }).pagination.total,
+        searchStatus: discoveryStatus,
+        searchIndexed: indexedCount,
+        settlementsInFlight: settleInflight.inFlight,
+      });
+    });
+  }
 
   /**
    * RFP §3.6 makes this endpoint an acceptance criterion: it must emit the
@@ -197,28 +438,113 @@ export function buildFacilitator(
   app.get("/supported", async () => facilitator.getSupported());
 
   app.post<{ Body: FacilitatorRequestBody }>("/verify", async (request, reply) => {
+    metrics.count("verify.requests");
     const { paymentPayload, paymentRequirements } = request.body ?? {};
     if (!paymentPayload || !paymentRequirements) {
       // Every rejection carries a non-null reason (RFP §3.3, §3.6).
+      metrics.reject("INVALID_BODY");
+      console.warn(
+        JSON.stringify({ event: "verify_rejected", requestId: request.id, reason: "INVALID_BODY" }),
+      );
       return reply
         .code(400)
         .send({ isValid: false, invalidReason: "invalid_request_body", payer: null });
     }
-    return facilitator.verify(paymentPayload, paymentRequirements);
+
+    const result = await facilitator.verify(paymentPayload, paymentRequirements);
+    if (result.isValid) {
+      metrics.count("verify.valid");
+    } else {
+      metrics.count("verify.invalid");
+      metrics.reject("INVALID_PAYMENT");
+      console.warn(
+        JSON.stringify({
+          event: "verify_rejected",
+          requestId: request.id,
+          network: config.network,
+          reason: "INVALID_PAYMENT",
+        }),
+      );
+    }
+    return result;
   });
 
   app.post<{ Body: FacilitatorRequestBody }>("/settle", async (request, reply) => {
+    metrics.count("settle.requests");
     const { paymentPayload, paymentRequirements } = request.body ?? {};
     if (!paymentPayload || !paymentRequirements) {
+      metrics.reject("INVALID_BODY");
+      console.warn(
+        JSON.stringify({ event: "settle_rejected", requestId: request.id, reason: "INVALID_BODY" }),
+      );
       return reply
         .code(400)
         .send({ success: false, errorReason: "invalid_request_body", transaction: null });
     }
 
-    const slot: { outcome?: CatalogOutcome } = {};
-    const result = await catalogSlot.run(slot, () =>
-      facilitator.settle(paymentPayload, paymentRequirements),
+    // Capacity, not rate: a slot bounds how much sponsored fee spend can be in
+    // flight at once and keeps simultaneous submissions off the same signer's
+    // sequence number. 503 rather than 429 — the caller is not misbehaving,
+    // the server is full — and the slot is released whichever way settle goes.
+    if (!settleInflight.tryAcquire()) {
+      metrics.reject("SETTLE_CONCURRENCY_LIMIT");
+      logRejection(request, "concurrency:settle", clientBucket(request.ip));
+      return reply
+        .code(503)
+        .header("Retry-After", "1")
+        .send({ success: false, errorReason: "server_busy", transaction: null });
+    }
+
+    console.info(
+      JSON.stringify({
+        event: "settle_started",
+        requestId: request.id,
+        network: config.network,
+        scheme: paymentRequirements.scheme,
+      }),
     );
+
+    const startedAt = Date.now();
+    const slot: { outcome?: CatalogOutcome } = {};
+    let result;
+    try {
+      result = await catalogSlot.run(slot, () =>
+        facilitator.settle(paymentPayload, paymentRequirements),
+      );
+    } finally {
+      settleInflight.release();
+    }
+
+    const latencyMs = Date.now() - startedAt;
+    if (result.success && result.transaction) {
+      metrics.settlementsSucceeded += 1;
+      metrics.lastSettlementSuccessAt = new Date().toISOString();
+      console.info(
+        JSON.stringify({
+          event: "settle_succeeded",
+          requestId: request.id,
+          network: config.network,
+          transactionHash: result.transaction,
+          latencyMs,
+        }),
+      );
+      // Fee accounting happens after the answer, never inside it.
+      recordSponsoredFee(result.transaction);
+    } else {
+      metrics.submissionsFailed += 1;
+      metrics.lastSettlementFailureAt = new Date().toISOString();
+      const reason = classifySettleError(result.errorReason);
+      metrics.reject(reason);
+      console.warn(
+        JSON.stringify({
+          event: "settle_failed",
+          requestId: request.id,
+          network: config.network,
+          reason,
+          latencyMs,
+        }),
+      );
+    }
 
     // Cataloging outcome rides the header; the settlement body is untouched
     // whether the listing landed, was rejected, or the store was on fire.
@@ -265,7 +591,16 @@ export function buildFacilitator(
         : {}),
     };
 
-    return toDiscoveryResourcesResponse(catalog.list(query));
+    const page = catalog.list(query);
+
+    // Stale-while-revalidate: the caller gets the current binding now, and any
+    // listing whose result has aged out is re-checked behind this response.
+    // Traffic drives freshness, so nothing needs a cron.
+    for (const listing of page.resources) {
+      refreshIfStale(catalog, listing, { log: (r) => console.log(JSON.stringify(r)) });
+    }
+
+    return toDiscoveryResourcesResponse(page);
   });
 
   /**
@@ -285,6 +620,20 @@ export function buildFacilitator(
    * to answer rather than recommend a paid service it does not believe in.
    */
   app.get("/discovery/search", async (request, reply) => {
+    // An unbuilt index cannot answer, and must not pretend to. Abstention is a
+    // finding — "nothing here is worth paying for" — and returning it here
+    // would report a conclusion we never reached. 503 says the difference.
+    metrics.count("search.requests");
+    if (discoveryStatus !== "ready") {
+      metrics.searchNotReady += 1;
+      metrics.reject("INDEX_NOT_READY");
+      return reply.code(503).send({
+        error: "discovery index unavailable",
+        reason: "INDEX_NOT_READY",
+        status: discoveryStatus,
+      });
+    }
+
     const q = request.query as Record<string, unknown>;
 
     const query = typeof q.query === "string" ? q.query.trim() : "";
@@ -319,6 +668,9 @@ export function buildFacilitator(
       return reply.code(400).send({ error: "cursor does not match this query and filter set" });
     }
 
+    // Abstention is an answer, not a failure, and is counted apart from both.
+    if (response.abstained) metrics.searchAbstentions += 1;
+
     return toDiscoverySearchResponse(
       response.resources,
       response.partialResults,
@@ -338,5 +690,54 @@ export function buildFacilitator(
     catalog,
     search,
     searchSettled: () => syncSettled,
+    initializeSearch,
+    discoveryStatus: () => discoveryStatus,
+    metrics,
+  };
+}
+
+/**
+ * The production boot sequence, in one place.
+ *
+ * Order matters and is deliberate:
+ *
+ *   1. build — routes exist, discovery reports `initializing`
+ *   2. listen — liveness is available immediately, so a platform health check
+ *      does not time out while step 3 loads an ~86 MB model on a cold image
+ *   3. rebuild the index — discovery becomes ready, or reports why not
+ *
+ * Listening before the index is built is what makes readiness a real signal
+ * rather than a formality: there is a window where the process is alive and
+ * discovery honestly says it cannot answer yet.
+ *
+ * A failed index does not fail the boot. Verification and settlement do not
+ * read it, and taking a working payment plane offline because derived state
+ * could not be rebuilt would trade a degraded feature for an outage.
+ *
+ * @param store - Injectable catalog store, for tests.
+ */
+export async function startFacilitator(
+  config: FacilitatorConfig,
+  store?: CatalogStore,
+): Promise<StartedFacilitator> {
+  const built = buildFacilitator(config, store);
+
+  const address = await built.app.listen({ port: config.port, host: "0.0.0.0" });
+  const result = await built.initializeSearch();
+
+  console.log(
+    JSON.stringify(
+      result.ok
+        ? { event: "search_index_ready", indexed: result.indexed }
+        : { event: "search_index_failed", error: result.error },
+    ),
+  );
+
+  return {
+    ...built,
+    address,
+    stop: async () => {
+      await built.app.close();
+    },
   };
 }

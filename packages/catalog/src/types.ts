@@ -13,12 +13,25 @@
  * See docs/security/catalog-ownership-model.md for why the split exists.
  */
 
-/** How strongly the owner binding is evidenced. */
+/**
+ * How strongly the owner binding is evidenced.
+ *
+ * `domain-verified` proves that the controller of the resource's HTTPS origin
+ * declares this resource may be catalogued against this payTo on this network.
+ * It does not prove wallet control, resource ownership in a legal sense, seller
+ * solvency, or payment validity. The live 402 remains the payment authority.
+ */
 export type OwnershipBinding =
   /** Bound to the payTo observed at first settlement. No proof of URL control. */
   | "tofu"
-  /** Reserved: origin published a .well-known document authorizing this payTo. */
-  | "domain-verified";
+  /** The origin published a .well-known document authorizing this payTo. */
+  | "domain-verified"
+  /**
+   * The origin published a document naming a *different* payTo or network for
+   * this resource. An explicit contradiction, not an absence, and the one state
+   * that must never be hidden behind a reassuring label.
+   */
+  | "domain-mismatch";
 
 export type ResourceType = "http" | "mcp";
 

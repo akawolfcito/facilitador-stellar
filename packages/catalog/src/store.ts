@@ -13,7 +13,7 @@
  */
 
 import Database, { type Database as Db } from "better-sqlite3";
-import type {
+import type { OwnershipBinding,
   CatalogListing,
   CatalogOutcome,
   CatalogStore,
@@ -70,6 +70,27 @@ const MIGRATIONS: string[] = [
    *
    * `ON DELETE CASCADE` keeps vectors from outliving their listing.
    */
+  /**
+   * Domain-binding results, one row per listing.
+   *
+   * Derived state, like `embeddings`: deleting this table costs a re-fetch and
+   * nothing else, and every listing stays valid without it. Third-party response
+   * bodies are deliberately absent — the document is re-fetchable, and keeping
+   * copies of someone else's content on our disk is a liability with no reader.
+   */
+  `CREATE TABLE IF NOT EXISTS domain_verification (
+     canonical_key TEXT PRIMARY KEY NOT NULL
+                   REFERENCES listings(canonical_key) ON DELETE CASCADE,
+     origin        TEXT NOT NULL,
+     pay_to        TEXT NOT NULL,
+     network       TEXT NOT NULL,
+     status        TEXT NOT NULL,
+     reason        TEXT NOT NULL,
+     verified_at   TEXT,
+     checked_at    TEXT NOT NULL,
+     expires_at    TEXT,
+     failures      INTEGER NOT NULL DEFAULT 0
+   )`,
   `CREATE TABLE IF NOT EXISTS embeddings (
      canonical_key  TEXT PRIMARY KEY NOT NULL
                     REFERENCES listings(canonical_key) ON DELETE CASCADE,
@@ -146,6 +167,57 @@ function toListing(row: Row): CatalogListing {
   };
 }
 
+/**
+ * Ownership precedence, stated rather than implied.
+ *
+ * `domain-verified` outranks `tofu`, and `domain-mismatch` outranks both because
+ * an origin that named a different payee has said something, and a reassuring
+ * label over a live contradiction is the worst output this table can produce.
+ *
+ * Every settlement write arrives as `tofu`, so this is the line that stops a
+ * later payment from quietly demoting a verified listing. The previous code got
+ * that right by accident, via `existing ?? next`. Getting it right on purpose
+ * means the next person to touch this line can see what it is for.
+ */
+const BINDING_RANK: Record<OwnershipBinding, number> = {
+  tofu: 0,
+  "domain-verified": 1,
+  "domain-mismatch": 2,
+};
+
+export function strongerBinding(
+  existing: OwnershipBinding | undefined,
+  next: OwnershipBinding,
+): OwnershipBinding {
+  if (!existing) return next;
+  return BINDING_RANK[existing] >= BINDING_RANK[next] ? existing : next;
+}
+
+/** How long a verification result is trusted before it is asked again. */
+export const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * How long a previously verified binding survives continuous failure.
+ *
+ * Deliberately long. The alternative is a weekend outage silently downgrading an
+ * honest seller, and a binding that flips on the first timeout describes our
+ * network weather rather than their declaration.
+ */
+export const VERIFICATION_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+
+export interface VerificationRecord {
+  canonicalKey: string;
+  origin: string;
+  payTo: string;
+  network: string;
+  status: string;
+  reason: string;
+  verifiedAt: string | null;
+  checkedAt: string;
+  expiresAt: string | null;
+  failures: number;
+}
+
 export class SqliteCatalogStore implements CatalogStore {
   private readonly db: Db;
 
@@ -182,8 +254,10 @@ export class SqliteCatalogStore implements CatalogStore {
         ...next,
         // First sighting is immutable; an update must not rewrite history.
         firstSeenAt: existing?.first_seen_at ?? next.firstSeenAt,
-        ownershipBinding: (existing?.ownership_binding ??
-          next.ownershipBinding) as CatalogListing["ownershipBinding"],
+        ownershipBinding: strongerBinding(
+          existing?.ownership_binding as OwnershipBinding | undefined,
+          next.ownershipBinding,
+        ),
       };
 
       this.db
@@ -412,4 +486,112 @@ export class SqliteCatalogStore implements CatalogStore {
   close(): void {
     this.db.close();
   }
+  /** The last verification result for a listing, if one was ever recorded. */
+  verification(canonicalKey: string): VerificationRecord | undefined {
+    const row = this.db
+      .prepare("SELECT * FROM domain_verification WHERE canonical_key = ?")
+      .get(canonicalKey) as Record<string, unknown> | undefined;
+    if (!row) return undefined;
+    return {
+      canonicalKey: row.canonical_key as string,
+      origin: row.origin as string,
+      payTo: row.pay_to as string,
+      network: row.network as string,
+      status: row.status as string,
+      reason: row.reason as string,
+      verifiedAt: (row.verified_at as string | null) ?? null,
+      checkedAt: row.checked_at as string,
+      expiresAt: (row.expires_at as string | null) ?? null,
+      failures: row.failures as number,
+    };
+  }
+
+  /**
+   * Record a verification result and move the listing's binding accordingly.
+   *
+   * One transaction, because a result written without the binding it implies is
+   * a row that says one thing while the catalog says another.
+   *
+   * `failures` counts consecutive non-answers, not contradictions. A
+   * contradiction is an answer.
+   */
+  recordVerification(
+    canonicalKey: string,
+    outcome: { reason: string; origin: string },
+    binding: OwnershipBinding | undefined,
+    at: number = Date.now(),
+  ): void {
+    const previous = this.verification(canonicalKey);
+    const listing = this.db
+      .prepare("SELECT owner_pay_to, network, ownership_binding FROM listings WHERE canonical_key = ?")
+      .get(canonicalKey) as
+      | { owner_pay_to: string; network: string; ownership_binding: string }
+      | undefined;
+    if (!listing) return;
+
+    const verified = outcome.reason === "VERIFIED";
+    const answered = verified || binding === "domain-mismatch";
+    const failures = answered ? 0 : (previous?.failures ?? 0) + 1;
+    const now = new Date(at).toISOString();
+
+    this.db.transaction(() => {
+      this.db
+        .prepare(
+          `INSERT INTO domain_verification (
+             canonical_key, origin, pay_to, network, status, reason,
+             verified_at, checked_at, expires_at, failures
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(canonical_key) DO UPDATE SET
+             origin = excluded.origin, status = excluded.status, reason = excluded.reason,
+             verified_at = excluded.verified_at, checked_at = excluded.checked_at,
+             expires_at = excluded.expires_at, failures = excluded.failures`,
+        )
+        .run(
+          canonicalKey,
+          outcome.origin,
+          listing.owner_pay_to,
+          listing.network,
+          verified ? "VERIFIED" : binding === "domain-mismatch" ? "MISMATCH" : "UNVERIFIED",
+          outcome.reason,
+          verified ? now : (previous?.verifiedAt ?? null),
+          now,
+          new Date(at + VERIFICATION_TTL_MS).toISOString(),
+          failures,
+        );
+
+      if (binding) {
+        this.db
+          .prepare("UPDATE listings SET ownership_binding = ? WHERE canonical_key = ?")
+          .run(binding, canonicalKey);
+      }
+    })();
+  }
+
+  /**
+   * Demote a binding that has gone unanswered past the grace window.
+   *
+   * Returns true when a demotion happened, so the caller can log a state
+   * transition rather than a silent change.
+   */
+  degradeStaleVerification(canonicalKey: string, at: number = Date.now()): boolean {
+    const record = this.verification(canonicalKey);
+    if (!record || record.status !== "UNVERIFIED" || !record.verifiedAt) return false;
+    if (at - Date.parse(record.verifiedAt) < VERIFICATION_GRACE_MS) return false;
+
+    const row = this.db
+      .prepare("SELECT ownership_binding FROM listings WHERE canonical_key = ?")
+      .get(canonicalKey) as { ownership_binding: string } | undefined;
+    if (row?.ownership_binding !== "domain-verified") return false;
+
+    this.db.transaction(() => {
+      this.db
+        .prepare("UPDATE listings SET ownership_binding = 'tofu' WHERE canonical_key = ?")
+        .run(canonicalKey);
+      this.db
+        .prepare("UPDATE domain_verification SET verified_at = NULL WHERE canonical_key = ?")
+        .run(canonicalKey);
+    })();
+    return true;
+  }
+
 }

@@ -1,0 +1,27 @@
+# Schema: https://railway.com/railway.schema.json  (draft-07)
+"$schema" = "https://railway.com/railway.schema.json"
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/demo-buyer/Dockerfile"
+
+[deploy]
+# Liveness. /ready is informational: it turns 503 when the day's budget is
+# spent, and restarting the container would not add budget.
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+
+# One instance, and this one is not negotiable. The spend ledger is a single
+# SQLite file on one volume, and a second replica would keep its own idea of
+# how much of today's budget is left. Two replicas means two budgets.
+numReplicas = 1
+
+# The volume must be mounted at /data. Railway volumes are created in the
+# dashboard rather than declared here.
+#
+# No public domain, on purpose. This service is reached over Railway's private
+# network by x402seek-preview and by nothing else, which makes "a stranger
+# cannot call it directly" true by topology rather than merely enforced by a
+# token someone has to remember to rotate.

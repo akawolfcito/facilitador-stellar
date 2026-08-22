@@ -1,0 +1,51 @@
+# Railway service: x402seek-facilitator-testnet
+# Schema: https://railway.com/railway.schema.json  (draft-07)
+#
+# Set the service root directory to `apps/facilitator` so Railway reads this
+# file; the Dockerfile still builds from the repository root because it needs
+# the workspace packages.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/facilitator/Dockerfile"
+watchPatterns = [
+  "apps/facilitator/**",
+  "packages/catalog/**",
+  "packages/search/**",
+  "package.json",
+  "pnpm-lock.yaml",
+]
+
+[deploy]
+# Readiness, not liveness. /health answers 200 while the index is still
+# building, which is right for a process that can already settle payments but
+# wrong as a deploy gate — /ready is 200 only once discovery can answer.
+healthcheckPath = "/ready"
+# Measured: 3–4 s to ready with the model baked into the image. The slack is for
+# a cold image pull, not for the app.
+healthcheckTimeout = 180
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+# One instance. The catalog is a single SQLite file on one volume, so a second
+# replica would be a second writer — a correctness problem, not a scaling win.
+numReplicas = 1
+
+# Measured in a container: 273 MB after boot on an empty catalog, 404 MB with
+# the index built. 1 GB leaves room for the load spike without inviting a
+# runaway.
+[deploy.limitOverride.containers]
+cpu = 1
+memoryBytes = 1073741824
+
+# The catalog volume must be mounted at /data.
+#
+# Railway volumes are created in the dashboard rather than declared here, so
+# this is the contract the service depends on, stated where it will be read:
+#
+#   mount path : /data
+#   size       : 1 GB is ample; the catalog is kilobytes per listing
+#   env        : CATALOG_PATH=/data/catalog.db
+#
+# Without it the catalog is ephemeral, and losing it does not merely empty a
+# table — it discards the trust-on-first-use ownership bindings, after which a
+# different payTo can claim a canonical key that was already bound.

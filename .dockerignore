@@ -1,0 +1,35 @@
+# Nothing here belongs in a build context.
+#
+# The .env rules are the load-bearing ones: apps/e2e-stellar/.env.e2e holds
+# funded testnet buyer and facilitator secrets, and a stray COPY would bake them
+# into an image layer where deleting the file later would not remove them.
+
+.git
+node_modules
+**/node_modules
+
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Local scratch and reference material.
+private/
+
+# Model caches are rebuilt in the image's own model stage.
+.models-cache
+**/.models-cache
+
+# Local catalogs: the hosted one lives on a mounted volume.
+*.db
+*.db-journal
+*.db-wal
+**/catalog.db*
+**/.catalog-*.db*
+
+# Upstream clone used only for conformance runs.
+.x402-upstream/
+
+*.log
+.DS_Store
+dist/
